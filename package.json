@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": { "node": "24.x" },
   "scripts": { "dev": "node --watch src/server.js", "start": "node src/server.js", "test": "node --test", "check": "node --check api/index.js && node --check src/server.js && node --check src/site.js && node --check public/app.js && node --check public/calculator.js && node --check public/pricing.js && node --check src/calculator.js" }
 }
