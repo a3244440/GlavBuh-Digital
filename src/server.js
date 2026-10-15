@@ -18,7 +18,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
  const ready=env.PUBLIC_SITE_READY==='true';
  const telegramConfigured=Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID && ready);
  const buckets=new Map();
- const assets=new Map([['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']],['/calculator.js',['calculator.js','text/javascript; charset=utf-8']],['/pricing.js',['pricing.js','text/javascript; charset=utf-8']],['/logo-gb.png',['logo-gb.png','image/png']]]);
+ const assets=new Map([['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']],['/calculator.js',['calculator.js','text/javascript; charset=utf-8']],['/pricing.js',['pricing.js','text/javascript; charset=utf-8']],['/logo-gb.png',['logo-gb.png','image/png']],['/astana-hub.svg',['astana-hub.svg','image/svg+xml']]]);
  const send=(res,code,body,type='application/json; charset=utf-8')=>{res.writeHead(code,{'Content-Type':type,'Cache-Control':'no-store'});res.end(type.startsWith('application/json')?JSON.stringify(body):body)};
  return http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
