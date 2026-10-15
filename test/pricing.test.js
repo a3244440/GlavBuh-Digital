@@ -1,28 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateQuote} from '../public/pricing.js';
-const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:5,documents:60,months:1,discount:false};
-test('published monthly tariffs and 10 percent markup',()=>{
- for(const [organization,regime,base,total] of [['ip','simplified',50000,55000],['too','simplified',80000,88000],['ip','general',150000,165000],['too','general',150000,165000]]) {
-  const q=calculateQuote({...input,organization,regime});assert.equal(q.subtotal,base);assert.equal(q.total,total);assert.equal(q.discount,0);assert.equal(q.unit,'в месяц');
+const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:0,documents:60,issuedInvoices:60,receivedInvoices:60,payments:50,months:1,discount:false,nonresident:false,vat:false,vatRefund:false,assembly:false};
+test('corporate photograph tariffs depend on regime and activity, not IP/TOO',()=>{
+ for(const organization of ['ip','too'])for(const [regime,activity,base,total] of [['simplified','services',50000,55000],['simplified','goods',100000,110000],['simplified','mixed',100000,110000],['general','services',150000,165000],['general','goods',250000,275000],['general','mixed',250000,275000]]){
+  const q=calculateQuote({...input,organization,regime,activity});assert.equal(q.subtotal,base);assert.equal(q.total,total);assert.equal(q.unit,'в месяц');
  }
 });
-test('seller discount is 10 percent of the marked up total, not the base',()=>{
- const q=calculateQuote({...input,discount:true});assert.equal(q.beforeDiscount,55000);assert.equal(q.discount,5500);assert.equal(q.total,49500);
+test('seller discount applies to marked-up total',()=>{const q=calculateQuote({...input,discount:true});assert.equal(q.beforeDiscount,55000);assert.equal(q.discount,5500);assert.equal(q.total,49500)});
+test('employee groups start at first employee and round partial groups up',()=>{
+ for(const [employees,subtotal] of [[0,50000],[1,60000],[5,60000],[6,70000],[10,70000],[11,80000]])assert.equal(calculateQuote({...input,employees}).subtotal,subtotal);
 });
-test('employee block boundaries and different included headcounts',()=>{
- for(const [employees,extra] of [[0,0],[5,0],[6,5000],[10,5000],[11,10000]]) assert.equal(calculateQuote({...input,employees}).subtotal,50000+extra);
- assert.equal(calculateQuote({...input,regime:'general',employees:10}).subtotal,150000);
- assert.equal(calculateQuote({...input,regime:'general',employees:11}).subtotal,155000);
+test('invoice thresholds are quarterly, payments monthly; each surcharge once',()=>{
+ assert.equal(calculateQuote({...input,issuedInvoices:60,receivedInvoices:60,payments:50}).subtotal,50000);
+ assert.equal(calculateQuote({...input,issuedInvoices:61}).subtotal,70000);
+ assert.equal(calculateQuote({...input,receivedInvoices:61}).subtotal,70000);
+ assert.equal(calculateQuote({...input,payments:51}).subtotal,70000);
+ assert.equal(calculateQuote({...input,issuedInvoices:1000,receivedInvoices:500,payments:400}).subtotal,110000);
+ assert.equal(calculateQuote({...input,documents:100000}).subtotal,50000);
 });
-test('restoration is an explicit minimum and does not invent a monthly tariff',()=>{
- const q=calculateQuote({...input,task:'restoration',months:12,employees:50,discount:true});
- assert.equal(q.subtotal,150000);assert.equal(q.total,148500);assert.equal(q.unit,'за проект');assert.match(q.pending.join(' '),/12 мес/);assert.equal(q.estimate,true);
+test('each corporate supplement is applied and combined import/export is charged once',()=>{
+ for(const patch of [{nonresident:true},{vat:true},{vatRefund:true},{trade:'import'},{trade:'export'},{trade:'both'}])assert.equal(calculateQuote({...input,...patch}).subtotal,100000);
+ assert.equal(calculateQuote({...input,assembly:true}).subtotal,300000);
+ const all=calculateQuote({...input,regime:'general',activity:'mixed',employees:6,issuedInvoices:61,receivedInvoices:61,payments:51,nonresident:true,vat:true,vatRefund:true,trade:'both',assembly:true,discount:true});
+ assert.equal(all.subtotal,780000);assert.equal(all.markup,78000);assert.equal(all.discount,85800);assert.equal(all.total,772200);
 });
-test('unapproved document, goods and foreign trade surcharges are never invented',()=>{
- const q=calculateQuote({...input,documents:10000,activity:'mixed',trade:'both'});
- assert.equal(q.total,55000);assert.equal(q.pending.length,3);assert.match(q.pending.join(' '),/10000/);assert.match(q.pending.join(' '),/Товары/);assert.match(q.pending.join(' '),/экспорт/);
+test('restoration stays a project minimum and excludes recurring supplements',()=>{
+ const q=calculateQuote({...input,task:'restoration',months:12,employees:50,vat:true,assembly:true,trade:'both',discount:true});assert.equal(q.subtotal,150000);assert.equal(q.total,148500);assert.equal(q.unit,'за проект');assert.match(q.pending.join(' '),/12 мес/);assert.equal(q.items.length,1);
 });
-test('malformed, negative, fractional, nonfinite and out-of-range inputs fail',()=>{
- for(const patch of [{employees:-1},{employees:1.5},{documents:NaN},{documents:Infinity},{documents:100001},{months:0},{months:121},{organization:'other'},{trade:'invalid'},{discount:'true'}])assert.throws(()=>calculateQuote({...input,...patch}));
+test('malformed and out-of-range numeric fields cannot produce a quote',()=>{
+ for(const patch of [{employees:-1},{employees:1.5},{documents:NaN},{issuedInvoices:Infinity},{receivedInvoices:-1},{payments:100001},{months:0},{months:121},{organization:'other'},{trade:'invalid'},{discount:'true'},{vat:'yes'}])assert.throws(()=>calculateQuote({...input,...patch}));
 });
