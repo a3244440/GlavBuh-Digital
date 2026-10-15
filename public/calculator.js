@@ -9,7 +9,7 @@ if(form) {
   form.elements.months.disabled=!restoring;
   form.querySelectorAll('.monthly-options').forEach(section=>{section.hidden=restoring;section.querySelectorAll('input').forEach(field=>field.disabled=restoring)});
   const data=new FormData(form);
-  const input={...Object.fromEntries(data),employees:Number(data.get('employees')),currencyStatements:Number(data.get('currencyStatements')),tengeStatements:Number(data.get('tengeStatements')),issuedInvoices:Number(data.get('issuedInvoices')),receivedInvoices:Number(data.get('receivedInvoices')),payments:Number(data.get('payments')),nonresident:data.has('nonresident'),vat:data.has('vat'),vatRefund:data.has('vatRefund'),assembly:data.has('assembly'),months:data.get('task')==='restoration'?Number(data.get('months')):1,discount:data.has('discount')};
+  const input={...Object.fromEntries(data),employees:Number(data.get('employees')),currencyStatements:Number(data.get('currencyStatements')),tengeStatements:Number(data.get('tengeStatements')),issuedInvoices:Number(data.get('issuedInvoices')),receivedInvoices:Number(data.get('receivedInvoices')),payments:Number(data.get('payments')),nonresident:data.has('nonresident'),vat:data.has('vat'),vatRefund:data.has('vatRefund'),assembly:data.has('assembly'),months:data.get('task')==='restoration'?Number(data.get('months')):1};
   form.querySelector('.restore-months').hidden=input.task!=='restoration';
   byId('calc-status').textContent='';
   const valid=form.checkValidity() && (input.task==='restoration'?['employees','issuedInvoices','receivedInvoices','months']:['employees','issuedInvoices','receivedInvoices','payments','currencyStatements','tengeStatements']).every(name=>form.elements[name].value.trim()!=='');
@@ -19,7 +19,7 @@ if(form) {
   byId('calc-total').textContent=money(quote.total);
   byId('calc-unit').textContent=quote.unit;
   byId('calc-service').textContent=quote.package;
-  const rows=[...quote.items,...(input.discount?[{label:'Личная скидка консультанта 10%',amount:-quote.discount}]:[])];
+  const rows=quote.items;
   const breakdown=byId('calc-breakdown');breakdown.replaceChildren();
   rows.forEach(item=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=item.label;const amount=document.createElement('strong');amount.textContent=`${money(item.amount)} ₸`;row.append(label,amount);breakdown.append(row)});
   byId('calc-pending').replaceChildren(...[...quote.pending,...quote.notes].map(text=>{const item=document.createElement('li');item.textContent=text;return item}));
