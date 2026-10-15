@@ -70,3 +70,14 @@ test('calculator route, module assets and sitemap are available',async t=>{
  for(const path of ['/calculator.js','/pricing.js']){const asset=await api.get(path);assert.equal(asset.status,200);assert.match(asset.headers.get('content-type'),/javascript/);}
  assert.match(await(await api.get('/sitemap.xml')).text(),/calculator/);
 });
+test('Telegram leads work while search indexing stays disabled',async t=>{
+ const api=await app(t,{env:{...enabled,PUBLIC_SITE_READY:'false'},fetchImpl:async()=>({ok:true,json:async()=>({ok:true,result:{message_id:7}})})});
+ const health=await(await api.get('/healthz')).json();assert.equal(health.leads,'enabled');assert.equal(health.indexing,false);
+ const html=await(await api.get('/')).text();assert.match(html,/noindex,nofollow/);assert.doesNotMatch(html,/Приём заявок скоро откроется/);
+ assert.equal((await api.post()).status,200);
+});
+test('Vercel production origin is accepted without trusting request host headers',async t=>{
+ const api=await app(t,{env:{...enabled,PUBLIC_SITE_READY:'false',VERCEL_PROJECT_PRODUCTION_URL:'glavbuhdigital.vercel.app'},fetchImpl:async()=>({ok:true,json:async()=>({ok:true,result:{message_id:8}})})});
+ assert.equal((await api.post(lead,'https://glavbuhdigital.vercel.app')).status,200);
+ assert.equal((await api.post(lead,'https://fake.vercel.app')).status,403);
+});

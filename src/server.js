@@ -16,7 +16,9 @@ export function validateLead(body) {
 export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
  const siteUrl=new URL(env.SITE_URL || 'https://glav-buh.kz').origin;
  const ready=env.PUBLIC_SITE_READY==='true';
- const telegramConfigured=Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID && ready);
+ const allowedOrigins=new Set([siteUrl]);
+ if(env.VERCEL_PROJECT_PRODUCTION_URL && /^[a-zA-Z0-9.-]+$/.test(env.VERCEL_PROJECT_PRODUCTION_URL)) allowedOrigins.add(new URL(`https://${env.VERCEL_PROJECT_PRODUCTION_URL}`).origin);
+ const telegramConfigured=Boolean(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID);
  const buckets=new Map();
  const assets=new Map([['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']],['/calculator.js',['calculator.js','text/javascript; charset=utf-8']],['/pricing.js',['pricing.js','text/javascript; charset=utf-8']],['/logo-gb.png',['logo-gb.png','image/png']],['/astana-hub.svg',['astana-hub.svg','image/svg+xml']]]);
  const send=(res,code,body,type='application/json; charset=utf-8')=>{res.writeHead(code,{'Content-Type':type,'Cache-Control':'no-store'});res.end(type.startsWith('application/json')?JSON.stringify(body):body)};
@@ -33,7 +35,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
    if(path==='/api/leads') {
     if(req.method!=='POST'){res.setHeader('Allow','POST');return send(res,405,{message:'Используйте POST.'})}
     if(!telegramConfigured)return send(res,503,{message:'Приём заявок ещё не подключён. Попробуйте позже.'});
-    if(req.headers.origin !== siteUrl)return send(res,403,{message:'Недопустимый источник запроса.'});
+    if(!allowedOrigins.has(req.headers.origin))return send(res,403,{message:'Недопустимый источник запроса.'});
     if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,415,{message:'Ожидается JSON.'});
     // Trust the TCP peer only. Do not trust arbitrary X-Forwarded-For headers.
     const key=req.socket.remoteAddress;
