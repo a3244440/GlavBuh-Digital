@@ -64,3 +64,9 @@ test('Vercel adapter renders HTML and handles a pre-parsed JSON body',async t=>{
  const adapter=(await import('../api/index.js')).default;
  assert.equal(typeof adapter,'function');
 });
+test('calculator route, module assets and sitemap are available',async t=>{
+ const api=await app(t,{env:enabled});
+ const res=await api.get('/calculator/');assert.equal(res.status,200);const html=await res.text();assert.match(html,/calculator-form/);assert.match(html,/name="organization"/);assert.match(html,/name="months"/);assert.match(html,/type="module"/);
+ for(const path of ['/calculator.js','/pricing.js']){const asset=await api.get(path);assert.equal(asset.status,200);assert.match(asset.headers.get('content-type'),/javascript/);}
+ assert.match(await(await api.get('/sitemap.xml')).text(),/calculator/);
+});
