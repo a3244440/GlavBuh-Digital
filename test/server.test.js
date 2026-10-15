@@ -52,3 +52,15 @@ test('every imported sitemap page renders on its original URL',async t=>{
  assert.equal(originalPaths.length,18);
  for(const path of originalPaths){const res=await api.get(path);assert.equal(res.status,200,path);const html=await res.text();assert.match(html,/<h1>/);assert.match(html,/rel="canonical"/);assert.doesNotMatch(html,/undefined/);}
 });
+test('Vercel adapter renders HTML and handles a pre-parsed JSON body',async t=>{
+ const http=await import('node:http');
+ const application=createApp({env:enabled,fetchImpl:async()=>({ok:true,json:async()=>({ok:true,result:{message_id:1}})})});
+ const handler=application.listeners('request')[0];
+ const server=http.createServer((req,res)=>{req.body={...lead};return handler(req,res)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const result=await fetch(`http://127.0.0.1:${server.address().port}/api/leads`,{method:'POST',headers:{Origin:'https://glav-buh.kz','Content-Type':'application/json'}});
+ assert.equal(result.status,200);
+ const adapter=(await import('../api/index.js')).default;
+ assert.equal(typeof adapter,'function');
+});

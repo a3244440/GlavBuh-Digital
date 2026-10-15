@@ -43,10 +43,17 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
     if(bucket.count>=5){res.setHeader('Retry-After',String(Math.max(1,Math.ceil((600000-time+bucket.start)/1000))));return send(res,429,{message:'Слишком много попыток. Попробуйте через несколько минут.'})}
     if(buckets.size>=10000&&!buckets.has(key))return send(res,503,{message:'Сервис занят. Попробуйте позже.'});
     bucket.count++;buckets.set(key,bucket);
-    let size=0, chunks=[];
-    for await (const chunk of req){size+=chunk.length;if(size>8192)return send(res,413,{message:'Заявка слишком большая.'});chunks.push(chunk)}
     let body;
-    try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{return send(res,400,{message:'Некорректная заявка.'})}
+    if(req.body !== undefined) {
+     // Vercel may have parsed the body before invoking the function.
+     const serialized=typeof req.body==='string'?req.body:JSON.stringify(req.body);
+     if(Buffer.byteLength(serialized)>8192)return send(res,413,{message:'Заявка слишком большая.'});
+     try{body=JSON.parse(serialized)}catch{return send(res,400,{message:'Некорректная заявка.'})}
+    } else {
+     let size=0, chunks=[];
+     for await (const chunk of req){size+=chunk.length;if(size>8192)return send(res,413,{message:'Заявка слишком большая.'});chunks.push(chunk)}
+     try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{return send(res,400,{message:'Некорректная заявка.'})}
+    }
     const error=validateLead(body);
     if(error)return send(res,400,{message:error});
     const text=['Новая заявка · ГлавБух',`Имя: ${body.name.trim()}`,`Телефон: ${body.phone.trim()}`,`Услуга: ${body.service||'Помогите определиться'}`,`Задача: ${body.message?.trim()||'Не указана'}`,`Время UTC: ${new Date(now()).toISOString()}`].join('\n');

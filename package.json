@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=24" },
-  "scripts": { "dev": "node --watch src/server.js", "start": "node src/server.js", "test": "node --test", "check": "node --check src/server.js && node --check src/site.js && node --check public/app.js" }
+  "scripts": { "dev": "node --watch src/server.js", "start": "node src/server.js", "test": "node --test", "check": "node --check api/index.js && node --check src/server.js && node --check src/site.js && node --check public/app.js" }
 }
