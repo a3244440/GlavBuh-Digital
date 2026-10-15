@@ -1,7 +1,7 @@
 // Corporate price list supplied by the owner, October 2026. All amounts in KZT.
 export const pricing = {
- monthly:{simplified:{name:'Standard · СНР',services:50000,goods:100000},general:{name:'Gold · ОУР',services:150000,goods:250000}},
- employeeBlock:10000,employeeBlockSize:5,nonresident:50000,
+ monthly:{simplified:{name:'Standard · СНР',services:50000},general:{name:'Gold · ОУР',services:150000}},
+ goodsSupplement:50000,includedEmployees:5,employeeBlock:10000,employeeBlockSize:5,nonresident:50000,
  issuedLimit:60,receivedLimit:60,paymentLimit:50,excess:20000,
  vat:50000,trade:50000,vatRefund:50000,assembly:250000,
  restorationMinimum:150000,markupPercent:10,discountPercent:10
@@ -19,18 +19,19 @@ export function calculateQuote(input,rates=pricing){
   notes.push('Месячные доплаты пакетов Standard/Gold не прибавляются к разовому восстановлению.');
  }else{
   const goods=input.activity!=='services';
-  add(`${tariff.name} · ${goods?'товары'+(input.activity==='mixed'?' и услуги':''):'услуги'}`,goods?tariff.goods:tariff.services);
+  add(`${tariff.name} · основное ведение учёта`,tariff.services);
+  if(goods)add('Учёт товаров'+(input.activity==='mixed'?' и услуг':''),rates.goodsSupplement);
   if(input.nonresident)add('Сопровождение нерезидента',rates.nonresident);
-  if(input.employees){const blocks=Math.ceil(input.employees/rates.employeeBlockSize);add(`Сотрудники: ${input.employees} чел. · ${blocks} групп(ы) по 5`,blocks*rates.employeeBlock);}
-  if(input.issuedInvoices>rates.issuedLimit)add('Выданных счетов-фактур свыше 60 за квартал',rates.excess);
-  if(input.receivedInvoices>rates.receivedLimit)add('Полученных счетов-фактур свыше 60 за квартал',rates.excess);
+  if(input.employees>rates.includedEmployees){const extra=input.employees-rates.includedEmployees,blocks=Math.ceil(extra/rates.employeeBlockSize);add(`Сотрудники сверх первых 5: ${extra} чел. · ${blocks} групп(ы)`,blocks*rates.employeeBlock);}
+  if(input.issuedInvoices>rates.issuedLimit)add('Выданных счетов-фактур свыше 60 за месяц',rates.excess);
+  if(input.receivedInvoices>rates.receivedLimit)add('Полученных счетов-фактур свыше 60 за месяц',rates.excess);
   if(input.payments>rates.paymentLimit)add('Платёжных поручений свыше 50 за месяц',rates.excess);
   if(input.vat)add('НДС · форма 300',rates.vat);
   if(input.trade!=='none')add('Экспорт / импорт 328 / СНТ / 1-ТС',rates.trade);
   if(input.vatRefund)add('Возврат НДС в рамках сопровождения',rates.vatRefund);
   if(input.assembly)add('Комплектация / рекомплектация',rates.assembly);
-  notes.push('Расчётная трактовка: 10 000 ₸ за каждые начатые 5 сотрудников, с первой группы; доплаты за превышение лимитов начисляются по одному разу по каждому виду.');
-  if(input.activity==='mixed')notes.push('Услуги и товары рассчитаны по тарифу товаров, без сложения двух баз.');
+  notes.push('Первые 5 сотрудников включены. Далее 10 000 ₸ за каждые следующие начатые 5 сотрудников; доплаты за превышение лимитов начисляются по одному разу по каждому виду.');
+  if(input.activity==='mixed')notes.push('При наличии товаров к основному ведению добавлено 50 000 ₸; база услуг второй раз не начисляется.');
   if(input.trade==='both')notes.push('Импорт и экспорт вместе: одна общая доплата 50 000 ₸.');
   notes.push(`Общий объём первички (${input.documents}/мес.) сохранён для консультации. Самостоятельной ставки за него в прайсе нет; доплаты определяются отдельными полями счетов-фактур и платежей.`);
  }
