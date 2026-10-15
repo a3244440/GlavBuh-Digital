@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateQuote,pricing} from '../public/pricing.js';
-const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:0,currencyOperations:0,currencyConversions:0,extraStatements:0,issuedInvoices:60,receivedInvoices:60,payments:50,months:1,discount:false,nonresident:false,vat:false,vatRefund:false,assembly:false};
+const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:0,currencyStatements:0,currencyConversions:0,tengeStatements:0,issuedInvoices:60,receivedInvoices:60,payments:50,months:1,discount:false,nonresident:false,vat:false,vatRefund:false,assembly:false};
 test('corporate photograph tariffs depend on regime and activity, not IP/TOO',()=>{
  for(const organization of ['ip','too'])for(const [regime,activity,base,total] of [['simplified','services',50000,50000],['simplified','goods',150000,150000],['simplified','mixed',150000,150000],['general','services',150000,150000],['general','goods',250000,250000],['general','mixed',250000,250000]]){
   const q=calculateQuote({...input,organization,regime,activity});assert.equal(q.subtotal,base);assert.equal(q.total,total);assert.equal(q.unit,'в месяц');
@@ -29,12 +29,19 @@ test('restoration stays a project minimum and excludes recurring supplements',()
  const q=calculateQuote({...input,task:'restoration',months:12,employees:50,vat:true,assembly:true,trade:'both',discount:true});assert.equal(q.subtotal,150000);assert.equal(q.total,135000);assert.equal(q.unit,'за проект');assert.match(q.pending.join(' '),/12 мес/);assert.equal(q.items.length,1);
 });
 test('malformed and out-of-range numeric fields cannot produce a quote',()=>{
- for(const patch of [{employees:-1},{employees:1.5},{currencyOperations:NaN},{issuedInvoices:Infinity},{receivedInvoices:-1},{payments:100001},{months:0},{months:121},{organization:'other'},{trade:'invalid'},{discount:'true'},{vat:'yes'},{currencyConversions:-1},{extraStatements:1.5}])assert.throws(()=>calculateQuote({...input,...patch}));
+ for(const patch of [{employees:-1},{employees:1.5},{currencyStatements:NaN},{issuedInvoices:Infinity},{receivedInvoices:-1},{payments:100001},{months:0},{months:121},{organization:'other'},{trade:'invalid'},{discount:'true'},{vat:'yes'},{currencyConversions:-1},{tengeStatements:1.5}])assert.throws(()=>calculateQuote({...input,...patch}));
 });
 
-test('unpriced banking services appear as pending and are not silently free',()=>{
- const q=calculateQuote({...input,currencyOperations:3,currencyConversions:2,extraStatements:4});
- assert.equal(q.subtotal,50000);assert.equal(q.pending.length,3);assert.match(q.pending.join(' '),/не включена/);
- const priced=calculateQuote({...input,currencyOperations:3,currencyConversions:2,extraStatements:4},{...pricing,currencyOperation:1000,currencyConversion:2000,extraStatement:3000});
- assert.equal(priced.total,69000);assert.equal(priced.pending.length,0);
+test('each tenge and currency statement is priced; only conversion rate is pending',()=>{
+ const q=calculateQuote({...input,currencyStatements:3,currencyConversions:2,tengeStatements:4});
+ assert.equal(q.subtotal,165000);assert.equal(q.pending.length,1);assert.match(q.pending.join(' '),/не включена/);
+ const priced=calculateQuote({...input,currencyStatements:3,currencyConversions:2,tengeStatements:4},{...pricing,currencyConversion:2000});
+ assert.equal(priced.total,169000);assert.equal(priced.pending.length,0);
+});
+test('statement counts include the first statement, without per-operation currency charges',()=>{
+ assert.equal(calculateQuote({...input,tengeStatements:1}).total,60000);
+ assert.equal(calculateQuote({...input,currencyStatements:1}).total,75000);
+ const q=calculateQuote({...input,tengeStatements:2,currencyStatements:3,discount:true});
+ assert.equal(q.subtotal,145000);assert.equal(q.discount,14500);assert.equal(q.total,130500);
+ assert.equal(q.pending.length,0);
 });

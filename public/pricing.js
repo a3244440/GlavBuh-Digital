@@ -5,11 +5,11 @@ export const pricing = {
  issuedLimit:60,receivedLimit:60,paymentLimit:50,excess:20000,
  vat:50000,trade:50000,vatRefund:50000,assembly:250000,
  restorationMinimum:150000,discountPercent:10,
- currencyOperation:null,currencyConversion:null,extraStatement:null
+ currencyStatement:25000,currencyConversion:null,tengeStatement:10000
 };
 export function calculateQuote(input,rates=pricing){
  if(!input||!['maintenance','restoration'].includes(input.task)||!['ip','too'].includes(input.organization)||!['simplified','general'].includes(input.regime)||!['services','goods','mixed'].includes(input.activity)||!['none','import','export','both'].includes(input.trade))throw Error('Проверьте выбранные параметры.');
- for(const [key,max] of [['employees',10000],['issuedInvoices',100000],['receivedInvoices',100000],['payments',100000],['currencyOperations',100000],['currencyConversions',100000],['extraStatements',10000],['months',120]])if(!Number.isInteger(input[key])||input[key]<(key==='months'?1:0)||input[key]>max)throw Error('Проверьте количество сотрудников, документов и месяцев.');
+ for(const [key,max] of [['employees',10000],['issuedInvoices',100000],['receivedInvoices',100000],['payments',100000],['currencyStatements',100000],['currencyConversions',100000],['tengeStatements',10000],['months',120]])if(!Number.isInteger(input[key])||input[key]<(key==='months'?1:0)||input[key]>max)throw Error('Проверьте количество сотрудников, документов и месяцев.');
  for(const key of ['discount','nonresident','vat','vatRefund','assembly'])if(typeof input[key]!=='boolean')throw Error('Проверьте дополнительные услуги.');
  const restoration=input.task==='restoration',tariff=rates.monthly[input.regime];
  const items=[],notes=[],pending=[];
@@ -27,7 +27,7 @@ export function calculateQuote(input,rates=pricing){
   if(input.issuedInvoices>rates.issuedLimit)add('Выданных счетов-фактур свыше 60 за месяц',rates.excess);
   if(input.receivedInvoices>rates.receivedLimit)add('Полученных счетов-фактур свыше 60 за месяц',rates.excess);
   if(input.payments>rates.paymentLimit){const blocks=Math.ceil((input.payments-rates.paymentLimit)/rates.paymentLimit);add(`Платежи сверх 50: ${blocks} блок(а) по 50`,blocks*rates.excess);}
-  for(const [key,rateKey,label] of [['currencyOperations','currencyOperation','Валютные операции'],['currencyConversions','currencyConversion','Конвертация валют'],['extraStatements','extraStatement','Дополнительные банковские выписки']]){
+  for(const [key,rateKey,label] of [['currencyStatements','currencyStatement','Валютные выписки'],['currencyConversions','currencyConversion','Конвертация валют'],['tengeStatements','tengeStatement','Тенговые выписки']]){
    if(input[key]>0){
     if(rates[rateKey]===null)pending.push(`${label}: ${input[key]}. Ставка уточняется; доплата в сумму не включена.`);
     else add(`${label}: ${input[key]}`,input[key]*rates[rateKey]);
