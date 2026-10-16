@@ -15,7 +15,7 @@ export function calculateQuote(input,rates=pricing){
  const items=[],notes=[],pending=[];
  const add=(label,amount)=>items.push({label,amount});
  if(restoration){
-  add('Восстановление учёта — минимальная стоимость',rates.restorationMinimum);
+  add('Восстановление учёта: минимальная стоимость',rates.restorationMinimum);
   pending.push(`Период: ${input.months} мес.; выданных СФ: ${input.issuedInvoices}/мес., полученных СФ: ${input.receivedInvoices}/мес. Прайс содержит только «от 150 000 ₸»: итог после оценки состояния учёта.`);
   notes.push('Месячные доплаты пакетов Standard/Gold не прибавляются к разовому восстановлению.');
  }else{
@@ -38,7 +38,7 @@ export function calculateQuote(input,rates=pricing){
   if(input.trade==='export'||input.trade==='both')add('Экспорт',rates.export);
   if(input.vatRefund)add('Возврат НДС в рамках сопровождения',rates.vatRefund);
   if(input.assembly)add('Комплектация / рекомплектация',rates.assembly);
-  notes.push('Первые 5 сотрудников включены. Далее 10 000 ₸ за каждые следующие начатые 5 сотрудников; за каждые следующие начатые 50 платежей +20 000 ₸. Превышение 60 выданных и 60 полученных счетов-фактур — по одной доплате 20 000 ₸ отдельно.');
+  notes.push('Первые 5 сотрудников включены. Далее 10 000 ₸ за каждые следующие начатые 5 сотрудников; за каждые следующие начатые 50 платежей +20 000 ₸. Превышение 60 выданных и 60 полученных счетов-фактур: по одной доплате 20 000 ₸ отдельно.');
   if(input.activity==='mixed')notes.push('При наличии товаров к основному ведению добавлено 100 000 ₸; база услуг второй раз не начисляется.');
   if(input.trade==='both')notes.push('Импорт и экспорт рассчитываются отдельно: 50 000 ₸ + 50 000 ₸ = 100 000 ₸.');
 

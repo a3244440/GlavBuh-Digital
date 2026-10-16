@@ -23,7 +23,7 @@ if(form) {
    let message='';
    if(!field.disabled){
     if(field.validity.badInput)message='Введите целое число.';
-    else if(field.value.trim()==='')message=name==='months'?'Укажите период восстановления в месяцах.':'Заполните поле. Если нет — укажите 0.';
+    else if(field.value.trim()==='')message=name==='months'?'Укажите период восстановления в месяцах.':'Заполните поле. Если нет, укажите 0.';
     else if(!Number.isInteger(field.valueAsNumber))message='Введите целое число без дробной части.';
     else if(field.validity.rangeUnderflow)message=`Минимальное значение: ${field.min}.`;
     else if(field.validity.rangeOverflow)message=`Максимальное значение: ${field.max}.`;
@@ -59,7 +59,7 @@ if(form) {
   const errors=validateFields();
   const valid=errors.length===0;
   byId('calc-request').disabled=!valid;byId('calc-copy').disabled=!valid;
-  if(!valid){byId('calc-total').textContent='—';byId('calc-breakdown').replaceChildren();byId('calc-pending').replaceChildren();byId('calc-status').textContent=`Нужно заполнить или исправить полей: ${errors.length}. Нажмите на название поля в списке выше.`;summary='';return;}
+  if(!valid){byId('calc-total').textContent='...';byId('calc-breakdown').replaceChildren();byId('calc-pending').replaceChildren();byId('calc-status').textContent=`Нужно заполнить или исправить полей: ${errors.length}. Нажмите на название поля в списке выше.`;summary='';return;}
 
   const quote=calculateQuote(input);
   byId('calc-total').textContent=money(quote.total);
