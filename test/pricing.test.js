@@ -22,11 +22,11 @@ test('invoice and payment thresholds are monthly; payment blocks repeat, invoice
  assert.equal(calculateQuote({...input,issuedInvoices:1000,receivedInvoices:500,payments:400}).subtotal,230000);
 
 });
-test('each corporate supplement is applied and combined import/export is charged once',()=>{
- for(const patch of [{nonresident:true},{vat:true},{vatRefund:true},{trade:'import'},{trade:'export'},{trade:'both'}])assert.equal(calculateQuote({...input,...patch}).subtotal,100000);
+test('each corporate supplement is applied; import and export are separate',()=>{
+ for(const patch of [{nonresident:true},{vat:true},{vatRefund:true},{trade:'import'},{trade:'export'}])assert.equal(calculateQuote({...input,...patch}).subtotal,100000);
  assert.equal(calculateQuote({...input,assembly:true}).subtotal,300000);
  const all=calculateQuote({...input,regime:'general',activity:'mixed',employees:6,issuedInvoices:61,receivedInvoices:61,payments:51,nonresident:true,vat:true,vatRefund:true,trade:'both',assembly:true});
- assert.equal(all.subtotal,770000);assert.equal(all.total,770000);
+ assert.equal(all.subtotal,820000);assert.equal(all.total,820000);
 });
 test('restoration stays a project minimum and excludes recurring supplements',()=>{
  const q=calculateQuote({...input,task:'restoration',months:12,employees:50,vat:true,assembly:true,trade:'both'});assert.equal(q.subtotal,150000);assert.equal(q.total,150000);assert.equal(q.unit,'за проект');assert.match(q.pending.join(' '),/12 мес/);assert.equal(q.items.length,1);
@@ -46,4 +46,11 @@ test('statement counts include the first statement, without per-operation curren
  const q=calculateQuote({...input,tengeStatements:2,currencyStatements:3});
  assert.equal(q.subtotal,145000);assert.equal(q.total,145000);
  assert.equal(q.pending.length,0);
+});
+
+test('trade selections charge none, import, export and both independently',()=>{
+ for(const [trade,total,count] of [['none',50000,0],['import',100000,1],['export',100000,1],['both',150000,2]]){
+  const q=calculateQuote({...input,trade});assert.equal(q.total,total);
+  assert.equal(q.items.filter(item=>/Импорт|Экспорт/.test(item.label)).length,count);
+ }
 });

@@ -3,7 +3,7 @@ export const pricing = {
  monthly:{simplified:{name:'Standard · СНР',services:50000},general:{name:'Gold · ОУР',services:150000}},
  goodsSupplement:100000,includedEmployees:5,employeeBlock:10000,employeeBlockSize:5,nonresident:50000,
  issuedLimit:60,receivedLimit:60,paymentLimit:50,excess:20000,
- vat:50000,trade:50000,vatRefund:50000,assembly:250000,
+ vat:50000,import:50000,export:50000,vatRefund:50000,assembly:250000,
  restorationMinimum:150000,
  currencyStatement:25000,tengeStatement:10000
 };
@@ -34,12 +34,13 @@ export function calculateQuote(input,rates=pricing){
    }
   }
   if(input.vat)add('НДС · форма 300',rates.vat);
-  if(input.trade!=='none')add('Экспорт / импорт 328 / СНТ / 1-ТС',rates.trade);
+  if(input.trade==='import'||input.trade==='both')add('Импорт · 328 / СНТ / 1-ТС',rates.import);
+  if(input.trade==='export'||input.trade==='both')add('Экспорт',rates.export);
   if(input.vatRefund)add('Возврат НДС в рамках сопровождения',rates.vatRefund);
   if(input.assembly)add('Комплектация / рекомплектация',rates.assembly);
   notes.push('Первые 5 сотрудников включены. Далее 10 000 ₸ за каждые следующие начатые 5 сотрудников; за каждые следующие начатые 50 платежей +20 000 ₸. Превышение 60 выданных и 60 полученных счетов-фактур — по одной доплате 20 000 ₸ отдельно.');
   if(input.activity==='mixed')notes.push('При наличии товаров к основному ведению добавлено 100 000 ₸; база услуг второй раз не начисляется.');
-  if(input.trade==='both')notes.push('Импорт и экспорт вместе: одна общая доплата 50 000 ₸.');
+  if(input.trade==='both')notes.push('Импорт и экспорт рассчитываются отдельно: 50 000 ₸ + 50 000 ₸ = 100 000 ₸.');
 
  }
  const subtotal=items.reduce((s,item)=>s+item.amount,0);
