@@ -98,7 +98,7 @@ test('IT positioning presents software development without disguising accounting
  const api=await app(t,{env:{}});
  const home=await(await api.get('/')).text();assert.match(home,/IT-КОМПАНИЯ/);assert.match(home,/платформу учёта/);
  assert.ok(home.indexOf('platform-hero')<home.indexOf('id="platform-overview-title"'));
- assert.ok(home.indexOf('id="platform-overview-title"')<home.indexOf('id="maintenance-options"'));
+ assert.ok(home.indexOf('id="maintenance-options"')<home.indexOf('id="platform-overview-title"'));
  const schema=JSON.parse(home.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
  assert.equal(schema['@graph'][0]['@type'],'Organization');
  const company=await(await api.get('/about-us/')).text();
