@@ -12,7 +12,7 @@ async function app(t,options={}) {
 const enabled={SITE_URL:'https://glav-buh.kz',PUBLIC_SITE_READY:'true',TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-chat'};
 test('draft renders full server-side content and blocks indexing and leads',async t=>{
  const api=await app(t,{env:{}});
- const page=await api.get('/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/Ваш бизнес/);assert.match(html,/application\/ld\+json/);assert.match(html,/noindex,nofollow/);assert.match(html,/Приём заявок скоро откроется/);
+ const page=await api.get('/');assert.equal(page.status,200);const html=await page.text();assert.match(html,/Ведение/);assert.match(html,/100 000/);assert.match(html,/application\/ld\+json/);assert.match(html,/noindex,nofollow/);assert.match(html,/Приём заявок скоро откроется/);
  assert.match(await(await api.get('/robots.txt')).text(),/Disallow: \//);
  assert.equal((await api.post()).status,503);
 });
@@ -80,4 +80,16 @@ test('Vercel production origin is accepted without trusting request host headers
  const api=await app(t,{env:{...enabled,PUBLIC_SITE_READY:'false',VERCEL_PROJECT_PRODUCTION_URL:'glavbuhdigital.vercel.app'},fetchImpl:async()=>({ok:true,json:async()=>({ok:true,result:{message_id:8}})})});
  assert.equal((await api.post(lead,'https://glavbuhdigital.vercel.app')).status,200);
  assert.equal((await api.post(lead,'https://fake.vercel.app')).status,403);
+});
+
+test('maintenance proposal precedes other content and price page replaces imported web prices',async t=>{
+ const api=await app(t,{env:{}});
+ const home=await(await api.get('/')).text();
+ assert.ok(home.indexOf('class="maintenance-hero"')<home.indexOf('id="maintenance-options"'));
+ assert.ok(home.indexOf('id="maintenance-options"')<home.indexOf('id="about"'));
+ const prices=await(await api.get('/price-list/')).text();
+ assert.match(prices,/100 000/);assert.doesNotMatch(prices,/Тарифы перенесены|ИП - 50 000|ТОО - 80 000/);
+ assert.match(prices,/glavbuh-maintenance.pdf/);
+ const pdf=await api.get('/glavbuh-maintenance.pdf');assert.equal(pdf.status,200);assert.equal(pdf.headers.get('content-type'),'application/pdf');
+ const bytes=Buffer.from(await pdf.arrayBuffer());assert.equal(bytes.subarray(0,4).toString(),'%PDF');
 });
