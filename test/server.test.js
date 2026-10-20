@@ -26,7 +26,7 @@ test('service routes, assets, canonical redirects, sitemap and real 404',async t
 test('valid lead is delivered and success requires Telegram confirmation',async t=>{
  let sent;
  const api=await app(t,{env:enabled,fetchImpl:async(url,options)=>{assert.match(url,/api.telegram.org/);sent=JSON.parse(options.body);return {ok:true,json:async()=>({ok:true,result:{message_id:123}})}}});
- const res=await api.post();assert.equal(res.status,200);assert.equal(sent.chat_id,'test-chat');assert.match(sent.text,/Тест Клиент/);assert.equal(sent.parse_mode,undefined);
+ const res=await api.post();assert.equal(res.status,200);assert.equal(sent.chat_id,'test-chat');assert.match(sent.text,/Тест Клиент/);assert.match(sent.text,/Сообщения о скидках: без согласия/);assert.equal(sent.parse_mode,undefined);
 });
 test('delivery failure never returns a false success or exposes credentials',async t=>{
  const api=await app(t,{env:enabled,fetchImpl:async()=>{throw Error('private-token')}});
@@ -119,4 +119,14 @@ test('favicon files are served and referenced in the page head',async t=>{
  const html=await(await api.get('/')).text();
  assert.match(html,/rel="icon" href="\/favicon.ico"/);assert.match(html,/rel="apple-touch-icon" href="\/apple-touch-icon.png"/);
  for(const [path,type] of [['/favicon.ico','image/x-icon'],['/favicon-192.png','image/png'],['/apple-touch-icon.png','image/png']]){const res=await api.get(path);assert.equal(res.status,200,path);assert.equal(res.headers.get('content-type'),type)}
+});
+
+test('single privacy policy replaces the draft page and lists only real processing',async t=>{
+ const api=await app(t,{env:enabled});
+ const moved=await api.get('/privacy/');assert.ok(moved.redirected);assert.equal(new URL(moved.url).pathname,'/privacy-policy/');
+ const html=await(await api.get('/privacy-policy/')).text();
+ assert.match(html,/Политика <b>конфиденциальности<\/b>/);assert.match(html,/Құпиялық саясаты/);assert.match(html,/15 рабочих дней/);assert.match(html,/id="ru-consent"/);
+ assert.doesNotMatch(html,/Tilda|Bitrix|Vercel|Telegram|Используя сайт/);assert.doesNotMatch(html,/id="lead-form"/);
+ const home=await(await api.get('/')).text();assert.match(home,/name="marketing"/);assert.doesNotMatch(home,/href="\/privacy\/"/);
+ assert.equal((await api.post({...lead,marketing:'yes'})).status,400);
 });

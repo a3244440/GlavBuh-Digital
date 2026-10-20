@@ -10,7 +10,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
-    "check": "node --check api/index.js && node --check src/server.js && node --check src/site.js && node --check public/app.js && node --check public/calculator.js && node --check public/pricing.js && node --check src/calculator.js && node --check src/maintenance.js && node --check src/tariff-benefits.js && node --check scripts/render-price-pdf.js && node --check src/platform.js && node --check src/how-we-work.js && node --check src/careers.js && node --check src/partner-model.js",
+    "check": "node --check api/index.js && node --check src/server.js && node --check src/site.js && node --check public/app.js && node --check public/calculator.js && node --check public/pricing.js && node --check src/calculator.js && node --check src/maintenance.js && node --check src/tariff-benefits.js && node --check scripts/render-price-pdf.js && node --check src/platform.js && node --check src/how-we-work.js && node --check src/careers.js && node --check src/partner-model.js && node --check src/privacy-policy.js",
     "pdf": "node scripts/render-price-pdf.js"
   },
   "devDependencies": {
