@@ -208,7 +208,79 @@ th.today-col{color:var(--accent)}
 .toast.show{opacity:1}
 .empty{padding:24px;text-align:center;color:var(--muted);font-size:14px}
 
-@media (max-width:860px){
+
+/* game: HUD */
+.hud{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
+.lvl{display:grid;place-items:center;width:46px;height:46px;flex:none;position:relative}
+.lvl svg{position:absolute;inset:0}
+.lvl b{font-family:var(--f-display);font-weight:400;font-size:20px;position:relative}
+.hud-main{flex:1;min-width:180px;display:grid;gap:5px}
+.hud-top{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.hud-top .rk{font-weight:700}
+.xpbar{height:9px;border-radius:99px;background:var(--cell);overflow:hidden}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:var(--paper);border:1px solid var(--line);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.chip svg{width:16px;height:16px}
+.chip.fire{color:var(--weak)} .chip.star{color:var(--gold)}
+
+/* game: quests */
+.quests{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.quest{display:grid;gap:6px;padding:12px;border-radius:12px;background:var(--paper);border:1px solid var(--line);align-content:start}
+.quest .qt{font-weight:600;font-size:14px;line-height:1.3}
+.quest .qx{font-family:var(--f-mono);font-size:12px;color:var(--gold);font-weight:500}
+.quest .qp{height:5px;border-radius:99px;background:var(--cell);overflow:hidden}
+.quest .qp i{display:block;height:100%;background:var(--accent)}
+.quest.done{background:var(--accent-soft);border-color:var(--accent)}
+.quest.done .qx{color:var(--accent)}
+.chest{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:12px;border:1.5px dashed var(--gold);background:var(--gold-soft);font-size:14px}
+.chest svg{width:30px;height:30px;flex:none;color:var(--gold)}
+.chest.open{border-style:solid}
+
+/* game: path */
+.path{position:relative;margin:8px auto 0;max-width:520px}
+.path svg.trail{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.node{position:absolute;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:4px;background:none;border:0;padding:0;color:var(--ink)}
+.node .disc{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:22px;background:var(--cell);color:var(--muted);box-shadow:0 5px 0 color-mix(in srgb,var(--cell) 60%,var(--ink) 18%);transition:transform .15s}
+.node:hover .disc{transform:translateY(-2px)}
+.node.done .disc{background:var(--accent);color:var(--accent-ink);box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 70%,#000 30%)}
+.node.cur .disc{background:conic-gradient(var(--gold) calc(var(--p)*1%),var(--gold-soft) 0);color:var(--ink);box-shadow:0 5px 0 color-mix(in srgb,var(--gold) 70%,#000 30%);position:relative}
+.node.cur .disc::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--surface)}
+.node.cur .disc span{position:relative;z-index:1}
+.node.cur::before{content:"";position:absolute;top:-6px;left:50%;width:76px;height:76px;margin-left:-38px;border-radius:50%;border:2px solid var(--gold);animation:pulse 1.8s ease-out infinite}
+.node .disc svg{width:28px;height:28px}
+.node .nl{font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface);padding:1px 8px;border-radius:99px;border:1px solid var(--line)}
+.node .nl .ar{font-size:14px;margin-left:4px;color:var(--gold)}
+.node.mile .disc{width:76px;height:76px;font-size:26px}
+.flag{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+@keyframes pulse{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+.you{position:absolute;transform:translate(-50%,-100%);background:var(--ink);color:var(--paper);font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;letter-spacing:.04em}
+
+/* game: badges */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.badge{display:grid;justify-items:center;text-align:center;gap:6px;padding:18px 12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.medal{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold);border:3px solid var(--gold)}
+.medal svg{width:30px;height:30px}
+.badge .bt{font-weight:700;font-size:14px}
+.badge .bd{font-size:12.5px;color:var(--muted);line-height:1.35}
+.badge.locked .medal{background:var(--cell);border-color:var(--line);color:var(--muted);filter:grayscale(1)}
+.badge.locked .bt{color:var(--muted)}
+.badge .bp{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.xptable{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;font-size:14px}
+.xptable span:nth-child(even){font-family:var(--f-mono);color:var(--gold);text-align:right}
+
+/* game: celebration */
+.modal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 55%,transparent);padding:24px}
+.mbox{background:var(--surface);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center;display:grid;gap:10px;justify-items:center;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+.mbox .medal{width:88px;height:88px}
+.mbox .medal svg{width:40px;height:40px}
+.mbox h2{font-size:26px}
+.mbox .ar{font-size:24px;color:var(--gold)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:21}
+
+@media (max-width:860px){.quests{grid-template-columns:repeat(2,minmax(0,1fr))}
+
   .grid2{grid-template-columns:minmax(0,1fr)}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .prow{grid-template-columns:minmax(0,1fr);gap:8px}
@@ -238,22 +310,27 @@ th.today-col{color:var(--accent)}
       <label class="start" for="startDate"><span class="muted">Старт</span><input type="date" id="startDate"></label>
     </div>
     <nav class="tabs" role="tablist" aria-label="Разделы">
+      <button class="tab" role="tab" data-v="path">Путь</button>
       <button class="tab" role="tab" data-v="today">Сегодня</button>
       <button class="tab" role="tab" data-v="map">Карта мусхафа</button>
       <button class="tab" role="tab" data-v="juz">30 джузов</button>
       <button class="tab" role="tab" data-v="plan">План года</button>
       <button class="tab" role="tab" data-v="week">Распорядок</button>
+      <button class="tab" role="tab" data-v="badges">Награды</button>
       <button class="tab" role="tab" data-v="log">Журнал</button>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
+  <div id="hud" style="padding-top:20px"></div>
   <section class="summary" id="summary"></section>
   <div id="demoBar"></div>
   <section id="view"></section>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="modal"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
 
 <script>
 (function(){
@@ -286,16 +363,16 @@ const DOW=["Воскресенье","Понедельник","Вторник","�
 const MON=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
 
 /* ---------- state ---------- */
-function blank(){return {start:iso(new Date()),pages:{},pageDate:{},reviews:{},days:{},demo:false}}
+function blank(){return {start:iso(new Date()),pages:{},pageDate:{},reviews:{},revLog:{},days:{},demo:false,seen:null}}
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 if(!S||typeof S!=="object")S=blank();
-for(const k of ["pages","pageDate","reviews","days"]) if(!S[k]||typeof S[k]!=="object") S[k]={};
+for(const k of ["pages","pageDate","reviews","revLog","days"]) if(!S[k]||typeof S[k]!=="object") S[k]={};
 if(!S.start)S.start=iso(new Date());
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
-let view="today", logDate=iso(new Date());
-const h=location.hash.slice(1); if(["today","map","juz","plan","week","log"].includes(h))view=h;
+let view="path", logDate=iso(new Date());
+const h=location.hash.slice(1); if(["path","today","map","juz","plan","week","badges","log"].includes(h))view=h;
 
 /* ---------- dates ---------- */
 function iso(d){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
@@ -325,6 +402,78 @@ function pagesOn(ds){let n=0;for(const k in S.pageDate)if(S.pageDate[k]===ds&&S.
 function streak(){let d=today(),n=0;if(!dayActive(iso(d)))d=addDays(d,-1);while(dayActive(iso(d))){n++;d=addDays(d,-1)}return n}
 function weekKey(d){const w=d.getDay();return w===0||w===6?"we":w===5?"fr":"wd"}
 
+/* ---------- game ---------- */
+const IC={
+ star:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>',
+ fire:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.5 5 5.5 5 11a5 5 0 0 1-10 0c0-2.6 1.3-4.3 2.6-5.6.2 1.8 1 3 2.2 3.6C11.3 8 11 5 12 2z"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+ book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5v14c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-14c-3-.5-6 0-8 1.5zM12 6v14"/></svg>',
+ moon:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>',
+ sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+ loop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg>',
+ pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+ crown:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5z"/></svg>',
+ chest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5v9H3z"/><path d="M3 11h18M10 11v3h4v-3"/></svg>',
+ chestOpen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18v7H3z"/><path d="M4 12L6 4h12l2 8M10 12v3h4v-3"/><path d="M9 2l1 2M15 2l-1 2M12 1v2"/></svg>',
+ check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+};
+const XP={page:10,slot:5,perfect:15,review:20,rating:5,juz:100,chest:25,streakDay:3};
+const RANKS=[[1,"Новичок","مبتدئ"],[3,"Ученик","طالب"],[6,"Чтец","قارئ"],[10,"Хранитель аятов","حامل"],[15,"Знаток мусхафа","متقن"],[20,"Наставник","معلّم"]];
+function xpFor(n){return 50*n*(n-1)}
+function levelOf(x){let n=1;while(xpFor(n+1)<=x)n++;return n}
+function rankOf(n){if(learned()>=TOTAL)return ["Хафиз","حافظ"];let r=RANKS[0];for(const k of RANKS)if(n>=k[0])r=k;return [r[1],r[2]]}
+function activeDates(){const set=new Set();for(const d in S.days)if((S.days[d].slots||[]).some(Boolean))set.add(d);for(const k in S.pageDate)if(S.pages[k])set.add(S.pageDate[k]);return [...set].sort()}
+function bestStreak(){const a=activeDates();let best=0,cur=0,prev=null;for(const d of a){cur=prev&&diff(parse(prev),parse(d))===1?cur+1:1;best=Math.max(best,cur);prev=d}return best}
+function revOn(ds){return S.revLog[ds]||0}
+function quests(ds){
+  const d=parse(ds),r=rate(monthIdx(d)),rec=S.days[ds]||{},sl=(rec.slots||[]).filter(Boolean).length,pg=pagesOn(ds);
+  const rv=revOn(ds)>0||!!(rec.slots||[])[1];
+  return [
+    {t:`Выучи ${r} ${plural(r,"новую страницу","новые страницы","новых страниц")}`,x:r*XP.page,cur:Math.min(pg,r),max:r,ic:"book"},
+    {t:"Пройди все 5 подходов дня",x:5*XP.slot+XP.perfect,cur:sl,max:5,ic:"sun"},
+    {t:"Сделай повторение: утренний повтор или +1 к джузу",x:XP.review,cur:rv?1:0,max:1,ic:"loop"},
+    {t:"Оцени день в листе хафиза",x:XP.rating,cur:(rec.f&&rec.f.rating)?1:0,max:1,ic:"pen"}
+  ];
+}
+function questsDone(ds){return quests(ds).every(q=>q.cur>=q.max)}
+function xpTotal(){
+  let x=learned()*XP.page;
+  for(const ds in S.days){const r=S.days[ds],n=(r.slots||[]).filter(Boolean).length;x+=n*XP.slot+(n===5?XP.perfect:0)+(r.f&&r.f.rating?XP.rating:0);if(questsDone(ds))x+=XP.chest}
+  for(const j in S.reviews)x+=(S.reviews[j]||0)*XP.review;
+  x+=juzDone()*XP.juz+bestStreak()*XP.streakDay;
+  return x;
+}
+function inRange(a,b){for(let p=a;p<=b;p++)if(!S.pages[p])return false;return true}
+function cntRange(a,b){let n=0;for(let p=a;p<=b;p++)if(S.pages[p])n++;return n}
+function badgeList(){
+  const L=learned(),J=juzDone(),bs=bestStreak(),revs=Object.values(S.reviews).reduce((a,b)=>a+(b||0),0);
+  const days=Object.values(S.days),perfect=days.filter(d=>(d.slots||[]).filter(Boolean).length===5).length,
+    fajr=days.filter(d=>(d.slots||[])[0]).length,rated=days.filter(d=>d.f&&d.f.rating).length;
+  const B=(id,ic,t,d,cur,max)=>({id,ic,t,d,cur:Math.min(cur,max),max,ok:cur>=max});
+  return [
+    B("first","book","Бисмиллях","Выучить первую страницу",L,1),
+    B("fatiha","star","Открывающая","Выучить страницу 1: Аль-Фатиха",S.pages[1]?1:0,1),
+    B("p100","book","Сотня","Выучить 100 страниц",L,100),
+    B("juz1","crown","Первый джуз","Выучить джуз целиком",J,1),
+    B("juz5","crown","Пять джузов","Выучить 5 джузов",J,5),
+    B("half","moon","Половина пути","Выучить 302 страницы — половину Корана",L,302),
+    B("baqara","book","Корова","Сура Аль-Бакара, стр. 2–49",cntRange(2,49),48),
+    B("kahf","moon","Пещера","Сура Аль-Кахф, стр. 293–304",cntRange(293,304),12),
+    B("yasin","star","Сердце Корана","Сура Ясин, стр. 440–445",cntRange(440,445),6),
+    B("mulk","crown","Власть","Сура Аль-Мульк, стр. 562–564",cntRange(562,564),3),
+    B("amma","star","Джуз Амма","Последний джуз, стр. 582–604",cntRange(582,604),23),
+    B("s7","fire","Неделя огня","Серия 7 дней подряд",bs,7),
+    B("s30","fire","Месяц огня","Серия 30 дней подряд",bs,30),
+    B("s100","fire","Сто дней","Серия 100 дней подряд",bs,100),
+    B("fajr","sun","Ранняя птица","10 дней с подходом после Фаджра",fajr,10),
+    B("perfect","check","Идеальный день","Пройти все 5 подходов за день",perfect,1),
+    B("perfect30","check","Дисциплина","30 идеальных дней",perfect,30),
+    B("rev50","loop","Мать учения","50 повторов джузов",revs,50),
+    B("rated","pen","Самоанализ","Оценить 10 дней в листе хафиза",rated,10),
+    B("hafiz","crown","Хафиз","Выучить все 604 страницы",L,TOTAL)
+  ];
+}
+
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -342,6 +491,10 @@ function renderSummary(){
   else pace=`<span class="pace bad">Отставание ${-delta} стр.</span>`;
   const day=Math.max(0,diff(parse(S.start),today())+1);
   const st=streak();
+  const X=xpTotal(),lv=levelOf(X),rk=rankOf(lv),a=xpFor(lv),b=xpFor(lv+1),bo=badgeList().filter(x=>x.ok).length,LC=2*Math.PI*20;
+  $("#hud").innerHTML=`<div class="hud"><div class="lvl" title="Уровень"><svg viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="20" fill="none" stroke="var(--gold-soft)" stroke-width="4"/><circle cx="23" cy="23" r="20" fill="none" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(LC*(X-a)/(b-a)).toFixed(1)} ${LC.toFixed(1)}" transform="rotate(-90 23 23)"/></svg><b>${lv}</b></div>
+   <div class="hud-main"><div class="hud-top"><span><span class="rk">${rk[0]}</span> <span class="ar muted">${rk[1]}</span></span><span class="mono muted">${X-a} / ${b-a} XP</span></div><div class="xpbar"><i style="width:${((X-a)/(b-a)*100).toFixed(1)}%"></i></div></div>
+   <div class="chips"><span class="chip fire" title="Серия дней">${IC.fire}${st}</span><span class="chip star" title="Награды">${IC.star}${bo}/20</span><span class="chip mono" title="Всего опыта">${X} XP</span></div></div>`;
   $("#summary").innerHTML=`
    <div class="ring" aria-label="Выучено ${L} из ${TOTAL} страниц">
     <svg viewBox="0 0 148 148" aria-hidden="true">
@@ -403,6 +556,7 @@ function vToday(){
       ${isToday?"":`<button class="btn sm ghost" data-day="0">К сегодняшнему дню</button>`}
     </div>
   </div>
+  ${questCard(ds)}
   <div class="grid2">
     <div class="view">
       <div class="card">
@@ -510,13 +664,73 @@ function vLog(){
     <div class="row"><button class="btn primary" id="bkCopy">Скопировать мои данные</button><button class="btn" id="bkLoad">Восстановить из кода</button><span style="flex:1"></span><span id="resetZone"><button class="btn danger" id="reset">Сбросить всё</button></span></div></div></div>`;
 }
 
+function questCard(ds){
+  const q=quests(ds),done=q.filter(x=>x.cur>=x.max).length,all=done===q.length;
+  return `<div class="card"><div class="card-head"><div><h2>Квесты дня</h2><div class="hint">${done} из ${q.length} выполнено · закройте все, чтобы открыть сундук</div></div></div>
+  <div class="quests">${q.map(x=>`<div class="quest${x.cur>=x.max?" done":""}"><div class="qt">${x.t}</div><div class="qp"><i style="width:${x.cur/x.max*100}%"></i></div><div class="qx">${x.cur>=x.max?"✓ ":""}+${x.x} XP · ${x.cur}/${x.max}</div></div>`).join("")}</div>
+  <div class="chest${all?" open":""}">${all?IC.chestOpen:IC.chest}<div>${all?`<b>Сундук открыт: +${XP.chest} XP.</b> Все квесты дня выполнены, машааллах!`:`<b>Сундук дня: +${XP.chest} XP</b> <span class="muted">· откроется после всех четырёх квестов</span>`}</div></div></div>`;
+}
+function vPath(){
+  const np=nextPage(),cur=np?juzOf(np):30,STEP=104,W=300,top=60;
+  const pos=j=>({x:W/2+Math.sin(j*.85)*95,y:top+j*STEP});
+  let d="",nodes="";
+  for(let j=0;j<30;j++){const p=pos(j);d+=(j?" S":"M")+(j?` ${(pos(j-1).x+p.x)/2+Math.sin(j)*30} ${p.y-STEP/2} `:" ")+p.x+" "+p.y;
+    const s=juzStat(j),done=s.n===s.total,isCur=j===cur,mile=(j+1)%5===0;
+    const cls="node"+(done?" done":isCur?" cur":"")+(mile?" mile":"");
+    const inner=done?IC.star:isCur?`<span>${j+1}</span>`:(s.n?`<span>${j+1}</span>`:IC.lock);
+    nodes+=`<button class="${cls}" data-node="${j}" style="left:${p.x/W*100}%;top:${p.y}px;--p:${(s.n/s.total*100).toFixed(0)}" aria-label="Джуз ${j+1}: ${s.n} из ${s.total} страниц"><span class="disc">${inner}</span><span class="nl">Джуз ${j+1}<span class="ar">${JUZ_AR[j]}</span></span></button>`;
+    if(isCur)nodes+=`<span class="you" style="left:${p.x/W*100}%;top:${p.y-44}px">ВЫ ЗДЕСЬ · ${s.n}/${s.total}</span>`;
+    if(j===14)nodes+=`<span class="flag" style="left:${(p.x<W/2?p.x+110:p.x-110)/W*100}%;top:${p.y}px">½ Корана</span>`;
+    if(j===29)nodes+=`<span class="flag" style="left:50%;top:${p.y+70}px">Хафиз · حافظ</span>`;
+  }
+  const H=top+29*STEP+110;
+  return `${questCard(iso(new Date()))}
+  <div class="card"><div class="card-head"><div><h2>Путь хафиза</h2><div class="hint">30 джузов — 30 станций. Выучите все страницы джуза, чтобы получить звезду и +${XP.juz} XP. Нажмите на текущую станцию, чтобы перейти к сегодняшним страницам.</div></div></div>
+  <div class="path" style="height:${H}px"><svg class="trail" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="var(--cell)" stroke-width="10" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" vector-effect="non-scaling-stroke" pathLength="29" stroke-dasharray="${Math.min(29,cur)} 99"/>
+  </svg>${nodes}</div></div>`;
+}
+function vBadges(){
+  const B=badgeList(),ok=B.filter(b=>b.ok).length;
+  return `<div class="card"><div class="card-head"><div><h2>Награды</h2><div class="hint">Открыто ${ok} из ${B.length}</div></div></div>
+  <div class="badges">${B.map(b=>`<div class="badge${b.ok?"":" locked"}"><div class="medal">${b.ok?IC[b.ic]:IC.lock}</div><div class="bt">${b.t}</div><div class="bd">${b.d}</div>${b.ok?"":`<div class="bp">${b.cur} / ${b.max}</div>`}</div>`).join("")}</div></div>
+  <div class="card"><div class="card-head"><div><h2>Как начисляется опыт</h2><div class="hint">Уровень растёт с каждым действием. Звание меняется на 3, 6, 10, 15 и 20 уровнях, а «Хафиз» — за все 604 страницы.</div></div></div>
+  <div class="xptable"><span>Выученная страница</span><span>+${XP.page}</span><span>Подход распорядка</span><span>+${XP.slot}</span><span>Идеальный день, 5 из 5</span><span>+${XP.perfect}</span><span>Повтор джуза</span><span>+${XP.review}</span><span>Оценка дня</span><span>+${XP.rating}</span><span>Сундук дня: все квесты</span><span>+${XP.chest}</span><span>Выученный джуз</span><span>+${XP.juz}</span><span>Каждый день лучшей серии</span><span>+${XP.streakDay}</span></div></div>`;
+}
+
+/* ---------- celebration ---------- */
+let queue=[];
+function celebrate(){
+  const lv=levelOf(xpTotal()),got=badgeList().filter(b=>b.ok).map(b=>b.id);
+  if(!S.seen){S.seen={level:lv,badges:got};save();return}
+  if(lv>S.seen.level){const r=rankOf(lv);queue.push({ic:"crown",h:"Уровень "+lv,ar:r[1],t:r[0]+". Так держать — каждый аят приближает к цели."})}
+  for(const id of got)if(!S.seen.badges.includes(id)){const b=badgeList().find(x=>x.id===id);queue.push({ic:b.ic,h:b.t,t:"Награда открыта: "+b.d.toLowerCase()+"."})}
+  S.seen={level:Math.max(lv,S.seen.level),badges:[...new Set(S.seen.badges.concat(got))]};save();
+  if(queue.length&&!$("#modal").innerHTML)showNext();
+}
+function showNext(){
+  const m=queue.shift();if(!m)return;
+  $("#modal").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(m.h)}"><div class="mbox"><div class="medal">${IC[m.ic]}</div>${m.ar?`<div class="ar">${m.ar}</div>`:""}<h2>${esc(m.h)}</h2><div class="muted">${esc(m.t)}</div><button class="btn primary" id="mclose" style="margin-top:8px">Альхамдулиллях!</button></div></div>`;
+  $("#mclose").focus();confetti();
+}
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const c=$("#fx"),x=c.getContext("2d"),W=c.width=innerWidth,H=c.height=innerHeight;
+  const cs=getComputedStyle(document.documentElement),cols=["--accent","--gold","--weak","--gold-soft"].map(v=>cs.getPropertyValue(v).trim());
+  const P=Array.from({length:140},()=>({x:W/2,y:H*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+3,c:cols[Math.random()*4|0],a:Math.random()*6}));
+  let t=0;(function f(){x.clearRect(0,0,W,H);for(const p of P){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()}if(++t<110)requestAnimationFrame(f);else x.clearRect(0,0,W,H)})();
+}
+
 /* ---------- render ---------- */
 function render(){
   $("#startDate").value=S.start;
   document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===view));
   renderSummary();renderDemoBar();
-  const V={today:vToday,map:vMap,juz:vJuz,plan:vPlan,week:vWeek,log:vLog}[view];
+  const V={path:vPath,today:vToday,map:vMap,juz:vJuz,plan:vPlan,week:vWeek,badges:vBadges,log:vLog}[view];
   $("#view").className="view";$("#view").innerHTML=V();
+  if(view==="path"&&!render._scrolled){render._scrolled=true;const c=document.querySelector(".node.cur");if(c&&c.offsetTop>window.innerHeight*.6)window.scrollTo({top:c.getBoundingClientRect().top+scrollY-window.innerHeight/2})}
+  celebrate();
 }
 function day(){if(!S.days[logDate])S.days[logDate]={};return S.days[logDate]}
 
@@ -526,15 +740,17 @@ $("#startDate").addEventListener("change",e=>{if(e.target.value){S.start=e.targe
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;
   if(t.id==="loadDemo")return loadDemo();
-  if(t.id==="clearDemo"){S=blank();save();render();return toast("Пример очищен. Удачи в хифзе!")}
+  if(t.id==="clearDemo"){S=blank();save();render._scrolled=false;render();return toast("Пример очищен. Удачи в хифзе!")}
   if(t.dataset.day!==undefined){const n=+t.dataset.day;logDate=n?iso(addDays(parse(logDate),n)):iso(new Date());return render()}
-  if(t.dataset.pg){const p=+t.dataset.pg;if(S.pages[p]){setPage(p,0)}else{setPage(p,1,logDate);toast("Стр. "+p+" выучена. Машааллах!")}return render()}
-  if(t.dataset.slot!==undefined){const d=day();d.slots=d.slots||[];d.slots[+t.dataset.slot]=!d.slots[+t.dataset.slot];save();return render()}
+  if(t.dataset.pg){const p=+t.dataset.pg;if(S.pages[p]){setPage(p,0)}else{setPage(p,1,logDate);toast("Стр. "+p+" выучена · +"+XP.page+" XP")}return render()}
+  if(t.dataset.slot!==undefined){const d=day();d.slots=d.slots||[];d.slots[+t.dataset.slot]=!d.slots[+t.dataset.slot];save();if(d.slots[+t.dataset.slot])toast(d.slots.filter(Boolean).length===5?"Идеальный день · +"+(XP.slot+XP.perfect)+" XP":"+"+XP.slot+" XP");return render()}
   if(t.dataset.cell){const p=+t.dataset.cell,st=S.pages[p]||0;const nx=(st+1)%3;if(nx===0)setPage(p,0);else{S.pages[p]=nx;if(!S.pageDate[p])S.pageDate[p]=iso(new Date());save()}return render()}
-  if(t.dataset.rv!==undefined){const j=+t.dataset.rv;S.reviews[j]=Math.max(0,(S.reviews[j]||0)+(+t.dataset.d));save();return render()}
-  if(t.dataset.rev!==undefined){const j=+t.dataset.rev;S.reviews[j]=(S.reviews[j]||0)+1;save();render();return toast("Повтор джуза "+(j+1)+" засчитан")}
-  if(t.dataset.rt){const d=day();d.f=d.f||{};const v=+t.dataset.rt;d.f.rating=d.f.rating===v?undefined:v;save();document.querySelectorAll("[data-rt]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rt===d.f.rating));return}
+  if(t.dataset.rv!==undefined){const j=+t.dataset.rv,dd=+t.dataset.d,td=iso(new Date());if(dd<0&&!(S.reviews[j]>0))return;S.reviews[j]=(S.reviews[j]||0)+dd;S.revLog[td]=Math.max(0,(S.revLog[td]||0)+dd);save();if(dd>0)toast("Повтор джуза "+(j+1)+" · +"+XP.review+" XP");return render()}
+  if(t.dataset.rev!==undefined){const j=+t.dataset.rev;S.reviews[j]=(S.reviews[j]||0)+1;S.revLog[logDate]=(S.revLog[logDate]||0)+1;save();render();return toast("Повтор джуза "+(j+1)+" · +"+XP.review+" XP")}
+  if(t.dataset.rt){const d=day();d.f=d.f||{};const v=+t.dataset.rt;d.f.rating=d.f.rating===v?undefined:v;save();return render()}
   const yn=t.closest("[data-yn]");if(yn){const d=day();d.f=d.f||{};const v=t.dataset.v==="1";d.f[yn.dataset.yn]=d.f[yn.dataset.yn]===v?undefined:v;save();yn.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.v==="1")===d.f[yn.dataset.yn]&&d.f[yn.dataset.yn]!==undefined));return}
+  if(t.dataset.node!==undefined){const j=+t.dataset.node;if(t.classList.contains("cur")){logDate=iso(new Date());view="today"}else{view="juz"}try{history.replaceState(null,"","#"+view)}catch(_){}render();return window.scrollTo({top:0})}
+  if(t.id==="mclose"){$("#modal").innerHTML="";return showNext()}
   if(t.dataset.open){logDate=t.dataset.open;view="today";try{history.replaceState(null,"","#today")}catch(_){}render();return window.scrollTo({top:0})}
   if(t.id==="bkCopy"){const txt=JSON.stringify(S);const ta=$("#bk");ta.value=txt;
     const ok=()=>toast("Скопировано. Сохраните код в заметках"),fb=()=>{ta.focus();ta.select();toast("Выделено — скопируйте вручную")};
@@ -550,10 +766,10 @@ document.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.f&&
 function loadDemo(){
   const t=today(),start=addDays(t,-44);S=blank();S.demo=true;S.start=iso(start);
   let p=1;
-  for(let i=0;i<44;i++){const d=iso(addDays(start,i));if(i%9===6)continue;const n=i<14?1:2;for(let k=0;k<n&&p<=72;k++){S.pages[p]=1;S.pageDate[p]=d;p++}
+  for(let i=0;i<44;i++){const d=iso(addDays(start,i));if(i%9===6&&i<30)continue;const n=i<14?1:2;for(let k=0;k<n&&p<=72;k++){S.pages[p]=1;S.pageDate[p]=d;p++}
     S.days[d]={slots:[true,true,i%3!==0,true,i%4!==1],f:i%5===0?{page:"Джуз "+(juzOf(p-1)+1)+" / стр. "+(p-1),reps:"20",mins:"45",rating:7+(i%3),difficult:i%10===0?"Переход между аятами 8 и 9":"",audio:true}:{}}}
   [14,15,33,41].forEach(x=>{if(S.pages[x])S.pages[x]=2});
-  S.reviews={0:9,1:3};
+  S.reviews={0:9,1:3};S.revLog[iso(addDays(t,-1))]=2;S.seen=null;
   save();logDate=iso(new Date());render();toast("Загружен пример за 44 дня");
 }
 
