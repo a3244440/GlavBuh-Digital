@@ -113,3 +113,10 @@ test('careers page renders with a coming-soon state and is linked from the foote
  assert.match(await(await api.get('/')).text(),/href="\/vakansii\/"/);
  assert.match(await(await api.get('/sitemap.xml')).text(),/vakansii/);
 });
+
+test('favicon files are served and referenced in the page head',async t=>{
+ const api=await app(t,{env:{}});
+ const html=await(await api.get('/')).text();
+ assert.match(html,/rel="icon" href="\/favicon.ico"/);assert.match(html,/rel="apple-touch-icon" href="\/apple-touch-icon.png"/);
+ for(const [path,type] of [['/favicon.ico','image/x-icon'],['/favicon-192.png','image/png'],['/apple-touch-icon.png','image/png']]){const res=await api.get(path);assert.equal(res.status,200,path);assert.equal(res.headers.get('content-type'),type)}
+});
