@@ -504,7 +504,46 @@ if(!S||typeof S!=="object")S=blank();
 for(const k of ["pages","pageDate","reviews","revLog","days"]) if(!S[k]||typeof S[k]!=="object") S[k]={};
 if(!S.start)S.start=iso(new Date());
 if(S.lang!=="kk")S.lang="ru";
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function norm(o){const x=Object.assign(blank(),o||{});for(const k of ["pages","pageDate","reviews","revLog","days"])if(!x[k]||typeof x[k]!=="object")x[k]={};if(!x.start)x.start=iso(new Date());if(x.lang!=="kk")x.lang="ru";return x}
+let localOk=true;
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));localOk=true}catch(e){localOk=false}}
+function save(){S.updatedAt=Date.now();saveLocal();pushCloud();askPersist()}
+
+/* ---------- cloud sync (claude.ai account; absent on a plain website) ---------- */
+let cloudRef=null,cloud="off",pushTimer=null,pushing=false,pushAgain=false;
+function pushCloud(){if(!cloudRef)return;clearTimeout(pushTimer);pushTimer=setTimeout(flushCloud,700)}
+async function flushCloud(){
+  if(!cloudRef)return;if(pushing){pushAgain=true;return}
+  pushing=true;cloud="saving";paintCloud();
+  try{await cloudRef.set({json:JSON.stringify(S),updatedAt:S.updatedAt||Date.now()});cloud="on"}
+  catch(e){cloud=e&&e.code==="quota_exceeded"?"full":"error"}
+  pushing=false;paintCloud();if(pushAgain){pushAgain=false;flushCloud()}
+}
+async function initCloud(){
+  try{
+    if(!window.claude||typeof window.claude.use!=="function")return;
+    const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    cloudRef=db.doc("data/users/"+id+"/hifz");cloud="saving";paintCloud();
+    const snap=await cloudRef.get();
+    const remote=snap.exists?snap.data():null;
+    const rAt=remote&&remote.updatedAt||0,lAt=S.updatedAt||0;
+    if(remote&&remote.json&&rAt>lAt){S=norm(JSON.parse(remote.json));saveLocal();cloud="on";render();toast(L("Данные загружены из облака","Деректер бұлттан жүктелді"));return}
+    const hasData=learned()+Object.keys(S.days).length>0;
+    if(hasData&&lAt>=rAt){if(!S.updatedAt)S.updatedAt=Date.now();await flushCloud()}else{cloud="on";paintCloud()}
+  }catch(e){cloud="error";paintCloud()}
+}
+let persistAsked=false;
+function askPersist(){if(persistAsked)return;persistAsked=true;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(_){}}
+function cloudText(){
+  if(cloud==="on")return [L("Сохранено в облаке Claude","Claude бұлтында сақталды"),"ok"];
+  if(cloud==="saving")return [L("Сохраняю…","Сақталуда…"),""];
+  if(cloud==="error")return [L("Облако недоступно, сохранено в браузере","Бұлт қолжетімсіз, браузерде сақталды"),"warn"];
+  if(cloud==="full")return [L("Облако переполнено","Бұлт толып кетті"),"warn"];
+  return localOk?[L("Сохранено в этом браузере","Осы браузерде сақталды"),""]:[L("Браузер не даёт сохранять","Браузер сақтауға рұқсат бермейді"),"warn"];
+}
+function paintCloud(){document.querySelectorAll("[data-cloud]").forEach(el=>{const [t,c]=cloudText();el.className="pill "+c;el.textContent=t})}
 
 /* ---------- i18n ---------- */
 const KK=()=>S.lang==="kk";
@@ -625,7 +664,7 @@ function levelCard(){
 function statsCard(){
   const Lp=learned(),exp=expected(today()),d=Lp-exp,mi=monthIdx(today()),st=streak();
   const pace=mi<0?["—",L("старт ","старт ")+fmt(parse(S.start))]:d>=0?[d?"+"+d:"0",L("стр. к плану","бет жоспардан артық")]:["−"+(-d),L("стр. от плана","бет жоспардан кем")];
-  return `<div class="card"><div class="card-h" style="margin-bottom:12px"><h2>${L("Прогресс","Прогресс")}</h2><span class="pill ${mi<0?"":d>=0?"ok":"warn"}">${mi<0?L("Старт впереди","Старт алда"):d>=0?L("По плану","Жоспар бойынша"):L("Догоняем","Қуып жетеміз")}</span></div>
+  return `<div class="card"><div style="margin:-4px 0 12px"><span data-cloud class="pill ${cloudText()[1]}">${cloudText()[0]}</span></div><div class="card-h" style="margin-bottom:12px"><h2>${L("Прогресс","Прогресс")}</h2><span class="pill ${mi<0?"":d>=0?"ok":"warn"}">${mi<0?L("Старт впереди","Старт алда"):d>=0?L("По плану","Жоспар бойынша"):L("Догоняем","Қуып жетеміз")}</span></div>
   <div class="stats">
    <div class="st fire">${IC.fire}<b>${st}</b><span>${L(plural(st,"день","дня","дней")+" подряд","күн қатарынан")}</span></div>
    <div class="st page">${IC.book}<b>${Lp}</b><span>${L("из 604 стр.","604 беттен")}</span></div>
@@ -649,7 +688,7 @@ function demoCard(){
 /* ---------- views ---------- */
 function vPath(){
   const np=nextPage(),cur=np?juzOf(np):30,OFF=[0,-1,-1.4,-1,0,1,1.4,1];
-  let html=`<div class="only-m" style="display:grid;gap:16px">${demoCard()}${questCard(iso(new Date()))}</div>`;
+  let html=`<div class="only-m" style="display:grid;gap:16px"><div><span data-cloud class="pill ${cloudText()[1]}">${cloudText()[0]}</span></div>${demoCard()}${questCard(iso(new Date()))}</div>`;
   for(let s=0;s<6;s++){
     let n=0;for(let j=s*5;j<s*5+5;j++){const st=juzStat(j);if(st.n===st.total)n++}
     const a=JUZ_START[s*5],b=s<5?JUZ_START[s*5+5]-1:TOTAL;
@@ -786,6 +825,7 @@ function vLog(){
 }
 function vSettings(){
   return subtabs()+`<div class="card setting"><h2>${L("Язык","Тіл")}</h2><div class="sub">${L("Интерфейс, названия сур и план переключаются сразу.","Интерфейс, сүре атаулары мен жоспар бірден ауысады.")}</div>${langSwitch()}</div>
+  <div class="card setting"><h2>${L("Сохранение","Сақтау")}</h2><span data-cloud class="pill ${cloudText()[1]}">${cloudText()[0]}</span><div class="sub">${cloudRef?L("Прогресс хранится в вашем аккаунте Claude и одинаков на всех устройствах, где вы открываете эту ссылку.","Прогресс Claude аккаунтыңызда сақталады және осы сілтемені ашатын барлық құрылғыда бірдей."):L("Прогресс хранится только в этом браузере и только по этому адресу. Не открывайте трекер в режиме инкогнито и во встроенных браузерах мессенджеров. Для переноса на другое устройство используйте резервную копию ниже.","Прогресс тек осы браузерде және тек осы мекенжайда сақталады. Трекерді инкогнито режимінде және мессенджерлердің ішкі браузерлерінде ашпаңыз. Басқа құрылғыға көшіру үшін төмендегі сақтық көшірмені қолданыңыз.")}</div></div>
   <div class="card setting"><h2>${L("Дата старта","Старт күні")}</h2><div class="sub">${L("От неё считается план на 12 месяцев и норма страниц в день.","12 айлық жоспар мен күнделікті бет нормасы осы күннен есептеледі.")}</div><input type="date" id="startDate" value="${S.start}"></div>
   <div class="card setting"><h2>${L("Резервная копия","Сақтық көшірме")}</h2><div class="sub">${L("Данные хранятся в этом браузере. Скопируйте код и сохраните в заметках. На другом устройстве вставьте его и нажмите «Восстановить».","Деректер осы браузерде сақталады. Кодты көшіріп, жазбаларға сақтаңыз. Басқа құрылғыда оны қойып, «Қалпына келтіру» түймесін басыңыз.")}</div>
     <textarea class="bk" id="bk" aria-label="${L("Код резервной копии","Сақтық көшірме коды")}" placeholder="${L("Сюда вставляется код резервной копии","Сақтық көшірме коды осында қойылады")}"></textarea>
@@ -875,6 +915,7 @@ function confetti(){
 }
 
 render();
+initCloud();
 })();
 </script>
 </body>
