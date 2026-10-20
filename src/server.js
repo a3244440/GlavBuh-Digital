@@ -9,6 +9,7 @@ export function validateLead(body) {
  if (typeof body.name !== 'string' || body.name.trim().length < 2 || body.name.length > 80 || /[\x00-\x1f]/.test(body.name)) return 'Укажите имя от 2 до 80 символов.';
  if (typeof body.phone !== 'string' || body.phone.length > 30 || !/^[+\d\s()-]+$/.test(body.phone) || body.phone.replace(/\D/g,'').length < 10 || body.phone.replace(/\D/g,'').length > 15) return 'Проверьте номер телефона.';
  if (body.consent !== 'on') return 'Для отправки необходимо согласие на обработку данных.';
+ if (body.marketing !== undefined && body.marketing !== 'on') return 'Некорректная заявка.';
  if (body.message !== undefined && (typeof body.message !== 'string' || body.message.length > 1500)) return 'Сообщение должно быть не длиннее 1500 символов.';
  if (body.service && !services.some(s=>s.title===body.service)) return 'Выберите услугу из списка.';
  return null;
@@ -58,7 +59,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
     }
     const error=validateLead(body);
     if(error)return send(res,400,{message:error});
-    const text=['Новая заявка · ГлавБух',`Имя: ${body.name.trim()}`,`Телефон: ${body.phone.trim()}`,`Услуга: ${body.service||'Помогите определиться'}`,`Задача: ${body.message?.trim()||'Не указана'}`,`Время UTC: ${new Date(now()).toISOString()}`].join('\n');
+    const text=['Новая заявка · ГлавБух',`Имя: ${body.name.trim()}`,`Телефон: ${body.phone.trim()}`,`Услуга: ${body.service||'Помогите определиться'}`,`Задача: ${body.message?.trim()||'Не указана'}`,`Сообщения о скидках: ${body.marketing==='on'?'согласие дано':'без согласия'}`,`Время UTC: ${new Date(now()).toISOString()}`].join('\n');
     try {
      const upstream=await fetchImpl(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:env.TELEGRAM_CHAT_ID,text,link_preview_options:{is_disabled:true}}),signal:AbortSignal.timeout(12000)});
      const result=await upstream.json();
@@ -67,6 +68,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
     }catch{return send(res,502,{message:'Не удалось подтвердить доставку заявки. Пожалуйста, попробуйте позже.'})}
    }
    if(!['GET','HEAD'].includes(req.method)){res.setHeader('Allow','GET, HEAD');return send(res,405,{message:'Метод не поддерживается.'})}
+   if(path==='/privacy/'){res.writeHead(301,{Location:'/privacy-policy/'});return res.end()}
    if(path==='/healthz')return send(res,200,{status:'ok',leads:telegramConfigured?'enabled':'disabled',indexing:ready});
    if(path==='/robots.txt')return send(res,200,ready?`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${siteUrl}/sitemap.xml\n`:'User-agent: *\nDisallow: /\n','text/plain; charset=utf-8');
    if(path==='/sitemap.xml')return send(res,200,`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${(ready?['/','/calculator/','/vakansii/',...originalPaths,...services.map(s=>`/uslugi/${s.slug}/`)]:[]).map(p=>`<url><loc>${siteUrl}${p}</loc></url>`).join('')}</urlset>`,'application/xml; charset=utf-8');
