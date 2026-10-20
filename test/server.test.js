@@ -130,3 +130,11 @@ test('single privacy policy replaces the draft page and lists only real processi
  const home=await(await api.get('/')).text();assert.match(home,/name="marketing"/);assert.doesNotMatch(home,/href="\/privacy\/"/);
  assert.equal((await api.post({...lead,marketing:'yes'})).status,400);
 });
+
+test('site offer covers only the website and keeps requisites consistent',async t=>{
+ const api=await app(t,{env:{}});
+ const res=await api.get('/offer/');assert.equal(res.status,200);const html=await res.text();
+ assert.match(html,/Публичная <b>оферта<\/b>/);assert.match(html,/Жария оферта/);assert.match(html,/не является договором оказания бухгалтерских услуг/);
+ assert.match(html,/\+7 \(707\) 552 00 00/);assert.doesNotMatch(html,/705 552|безотзывн|1000%|glav-buh\.kz\/offer<|ключи формата/);
+ assert.doesNotMatch(html,/id="lead-form"/);
+});
