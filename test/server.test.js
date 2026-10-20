@@ -105,3 +105,11 @@ test('IT positioning presents software development without disguising accounting
  assert.match(company,/модификация и реализация программного обеспечения и программного продукта/);
  assert.match(company,/Бухгалтерское сопровождение бизнеса представлено как отдельное направление/);
 });
+
+test('careers page renders with a coming-soon state and is linked from the footer',async t=>{
+ const api=await app(t,{env:enabled});
+ const res=await api.get('/vakansii/');assert.equal(res.status,200);const html=await res.text();
+ assert.match(html,/Попасть/);assert.match(html,/Скоро здесь появятся открытые позиции/);assert.doesNotMatch(html,/id="lead-form"/);
+ assert.match(await(await api.get('/')).text(),/href="\/vakansii\/"/);
+ assert.match(await(await api.get('/sitemap.xml')).text(),/vakansii/);
+});

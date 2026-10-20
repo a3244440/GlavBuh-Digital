@@ -384,6 +384,23 @@ h3{font:500 20px/1.2 var(--display);letter-spacing:-.03em;margin:0}
 .partner{margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
 .partner > div{max-width:640px}
 
+/* вакансии */
+.soon{display:flex;gap:28px;align-items:center;padding:36px}
+.soon h3{font-size:26px;margin-top:8px}
+.soon p{margin:10px 0 0;color:var(--muted);max-width:44em}
+.soon a{color:var(--ink);font-weight:500;border-bottom:1px solid currentColor}
+.soon-mark{flex:none;width:88px;height:88px;border-radius:24px;background:var(--bg);display:flex;align-items:center;justify-content:center;gap:7px}
+.soon-mark i{width:10px;height:10px;border-radius:50%;background:var(--red);animation:dot 1.4s var(--ease-io) infinite}
+.soon-mark i:nth-child(2){animation-delay:.16s}.soon-mark i:nth-child(3){animation-delay:.32s}
+@keyframes dot{0%,60%,100%{transform:none;opacity:.35}30%{transform:translateY(-8px);opacity:1}}
+.career-path{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;counter-reset:c}
+.career-path li{counter-increment:c;position:relative;padding:26px;border-radius:var(--r);background:var(--surface);box-shadow:0 0 0 1px var(--line)}
+.career-path li::before{content:counter(c,decimal-leading-zero);display:block;font:500 11px var(--mono);color:var(--red);margin-bottom:12px}
+.career-path li:not(:last-child)::after{content:"→";position:absolute;right:-13px;top:50%;translate:0 -50%;z-index:1;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:12px}
+.career-path li:last-child{background:var(--ink);color:#fff;box-shadow:none}
+.career-path p{margin:8px 0 0;color:var(--muted);font-size:15px}
+.career-path li:last-child p{color:#AEB6C2}
+
 /* текстовые страницы */
 .prose{max-width:860px}
 .prose p{margin:0 0 14px;color:var(--ink-2)}
@@ -419,6 +436,9 @@ h3{font:500 20px/1.2 var(--display);letter-spacing:-.03em;margin:0}
 @media (max-width:1080px){.app-body{grid-template-columns:minmax(0,1fr)}.app-side,.feed{display:none}}
 @media (max-width:1180px){.why{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:960px){
+ .career-path{grid-template-columns:1fr}
+ .career-path li:not(:last-child)::after{content:"↓";right:auto;left:26px;top:auto;bottom:-14px;translate:none}
+ .soon{flex-direction:column;align-items:flex-start;padding:26px}
  .assess,.platform-band,.flow ol{grid-template-columns:1fr}
  .flow li:not(:last-child)::after{content:"↓";right:auto;left:22px;top:auto;bottom:-14px;translate:none}
  .why{grid-template-columns:1fr 1fr}
