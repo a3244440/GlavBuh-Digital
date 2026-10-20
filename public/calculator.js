@@ -4,6 +4,18 @@ if(form) {
  const money=value=>new Intl.NumberFormat('ru-KZ',{maximumFractionDigits:0}).format(value);
  const byId=id=>document.getElementById(id);
  let summary='';
+ // Плавная смена сумм: число «докручивается» от прежнего значения к новому
+ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ let shownTotal=null,shownRows=null,totalFrame=0;
+ const frames=new WeakMap();
+ function animateNumber(node,from,to,onStep,suffix=''){
+  cancelAnimationFrame(frames.get(node));
+  if(reducedMotion||from===null||from===to){node.textContent=money(to)+suffix;onStep?.(to);return}
+  const start=performance.now(),duration=Math.min(900,420+Math.abs(to-from)/1000);
+  node.classList.remove('bump');void node.offsetWidth;node.classList.add('bump');
+  const step=now=>{const k=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-k,3),value=Math.round(from+(to-from)*eased);node.textContent=money(value)+suffix;onStep?.(value);if(k<1){const id=requestAnimationFrame(step);frames.set(node,id);if(onStep)totalFrame=id}};
+  const id=requestAnimationFrame(step);frames.set(node,id);if(onStep)totalFrame=id;
+ }
  const fieldNames={employees:'Количество сотрудников',issuedInvoices:'Выданные счета-фактуры за месяц',receivedInvoices:'Полученные счета-фактуры за месяц',payments:'Платёжные поручения за месяц',currencyStatements:'Валютные выписки за месяц',tengeStatements:'Тенговые выписки за месяц',months:'Период восстановления'};
  const errorSummary=document.createElement('div');
  errorSummary.className='calc-errors';errorSummary.hidden=true;errorSummary.setAttribute('aria-label','Поля, требующие заполнения');
@@ -59,15 +71,16 @@ if(form) {
   const errors=validateFields();
   const valid=errors.length===0;
   byId('calc-request').disabled=!valid;byId('calc-copy').disabled=!valid;
-  if(!valid){byId('calc-total').textContent='...';byId('calc-breakdown').replaceChildren();byId('calc-pending').replaceChildren();byId('calc-status').textContent=`Нужно заполнить или исправить полей: ${errors.length}. Нажмите на название поля в списке выше.`;summary='';return;}
+  if(!valid){cancelAnimationFrame(totalFrame);shownTotal=null;shownRows=null;byId('calc-total').textContent='...';byId('calc-breakdown').replaceChildren();byId('calc-pending').replaceChildren();byId('calc-status').textContent=`Нужно заполнить или исправить полей: ${errors.length}. Нажмите на название поля в списке выше.`;summary='';return;}
 
   const quote=calculateQuote(input);
-  byId('calc-total').textContent=money(quote.total);
+  animateNumber(byId('calc-total'),shownTotal,quote.total,value=>{shownTotal=value});
   byId('calc-unit').textContent=quote.unit;
   byId('calc-service').textContent=quote.package;
   const rows=quote.items;
   const breakdown=byId('calc-breakdown');breakdown.replaceChildren();
-  rows.forEach(item=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=item.label;const amount=document.createElement('strong');amount.textContent=`${money(item.amount)} ₸`;row.append(label,amount);breakdown.append(row)});
+  const nextRows=new Map();rows.forEach(item=>{const row=document.createElement('div');const label=document.createElement('span');label.textContent=item.label;const amount=document.createElement('strong');const key=item.label.split(':')[0];const before=shownRows?.get(key);if(shownRows&&before===undefined&&!reducedMotion)row.className='in';amount.textContent=`${money(before??item.amount)} ₸`;if(before!==undefined&&before!==item.amount)animateNumber(amount,before,item.amount,null,' ₸');nextRows.set(key,item.amount);row.append(label,amount);breakdown.append(row)});
+  shownRows=nextRows;
   byId('calc-pending').replaceChildren(...[...quote.pending,...quote.notes].map(text=>{const item=document.createElement('li');item.textContent=text;return item}));
   const labels={ip:'ИП',too:'ТОО',simplified:'Упрощёнка',general:'ОУР',services:'Услуги',goods:'Товары',mixed:'Услуги и товары',none:'Нет',import:'Импорт',export:'Экспорт',both:'Импорт и экспорт'};
   summary=[`Расчёт ГлавБух · ${input.task==='restoration'?'Восстановление':'Ведение учёта'}`,`${labels[input.organization]} · ${labels[input.regime]} · ${labels[input.activity]}`,`Сотрудников: ${input.employees}; ВЭД: ${labels[input.trade]}`,...(input.task==='restoration'?[`Период восстановления: ${input.months} мес.; выданных СФ/мес.: ${input.issuedInvoices}; полученных СФ/мес.: ${input.receivedInvoices}`]:[]),...(input.task==='maintenance'?[`Выданных СФ/месяц: ${input.issuedInvoices}; полученных СФ/месяц: ${input.receivedInvoices}; платежей/месяц по всем банкам: ${input.payments}`,`Валютные выписки: ${input.currencyStatements}; тенговые выписки: ${input.tengeStatements}`]:[]),...rows.map(item=>`${item.label}: ${money(item.amount)} ₸`),`Ориентир: от ${money(quote.total)} ₸ ${quote.unit}. Не окончательная цена.`,...quote.pending].join('\n');

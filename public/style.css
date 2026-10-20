@@ -317,6 +317,11 @@ h3{font:500 20px/1.2 var(--display);letter-spacing:-.03em;margin:0}
 .sum .lines > div.in{animation:lineIn .35s var(--ease-out)}
 @keyframes lineIn{from{opacity:0;transform:translateY(-6px)}}
 .sum .lines strong{font:500 13px var(--mono);white-space:nowrap}
+#calc-total{display:inline-block;font-variant-numeric:tabular-nums}
+#calc-total.bump{animation:bump .5s var(--ease-out)}
+@keyframes bump{30%{color:var(--red);transform:translateY(-2px)}}
+.sum .lines strong.bump{animation:tick .5s var(--ease-out)}
+@keyframes tick{30%{color:var(--red)}}
 .sum .notes{margin-top:14px;padding:14px;background:var(--bg);border-radius:12px;font-size:13px;color:var(--muted)}
 .sum .notes h2{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;color:var(--ink)}
 .sum .notes ul{margin:0;padding-left:16px;display:grid;gap:6px}
