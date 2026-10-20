@@ -100,6 +100,17 @@ main{min-width:0;display:grid;gap:16px;align-content:start;padding-block:4px 24p
 .rb[aria-current="page"]{color:var(--accent-t);border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .rail hr{border:0;border-top:2px solid var(--line);margin:10px 8px}
 
+/* language switch */
+.topright{display:flex;align-items:center;gap:6px;min-width:0}
+.lang{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface);border:2px solid var(--line);flex:none}
+.lang button{border:0;background:none;border-radius:9px;padding:5px 8px;font-weight:900;font-size:12px;letter-spacing:.04em;color:var(--muted);transition:background-color 160ms ease,color 160ms ease,transform 120ms var(--ease-out)}
+.lang button:active{transform:scale(.95)}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.rail .logo{flex-wrap:wrap;row-gap:14px}
+.rail .logo .lang{flex-basis:auto}
+@media (max-width:460px){.topbar .logo b{display:none}.hc{padding:6px 8px;font-size:14px}.hudchips{gap:4px}}
+@media (max-width:360px){.hc.lv{display:none}}
+
 /* ---------- primitives ---------- */
 .card{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
 .card h2{font-family:var(--f-display);font-weight:700;font-size:18px;letter-spacing:-.01em}
@@ -390,7 +401,7 @@ td:first-child span{display:block;font-weight:700;font-size:12.5px;color:var(--m
 
   <header class="topbar">
     <div class="logo" id="topLogo"></div>
-    <div class="hudchips" id="chips"></div>
+    <div class="topright"><div id="topLang"></div><div class="hudchips" id="chips"></div></div>
   </header>
 
   <main id="main"></main>
@@ -409,37 +420,40 @@ td:first-child span{display:block;font-weight:700;font-size:12.5px;color:var(--m
 const KEY="hifz-tracker-v1", TOTAL=604;
 const JUZ_START=[1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
 const JUZ_AR=["الم","سيقول","تلك الرسل","لن تنالوا","والمحصنات","لا يحب الله","وإذا سمعوا","ولو أننا","قال الملأ","واعلموا","يعتذرون","وما من دابة","وما أبرئ","ربما","سبحان الذي","قال ألم","اقترب","قد أفلح","وقال الذين","أمن خلق","اتل ما أوحي","ومن يقنت","وما لي","فمن أظلم","إليه يرد","حم","قال فما خطبكم","قد سمع الله","تبارك الذي","عم"];
-const JUZ_RU=["Аль-Фатиха 1 – Аль-Бакара 141","Аль-Бакара 142–252","Аль-Бакара 253 – Аль Имран 92","Аль Имран 93 – Ан-Ниса 23","Ан-Ниса 24–147","Ан-Ниса 148 – Аль-Маида 81","Аль-Маида 82 – Аль-Анам 110","Аль-Анам 111 – Аль-Араф 87","Аль-Араф 88 – Аль-Анфаль 40","Аль-Анфаль 41 – Ат-Тауба 92","Ат-Тауба 93 – Худ 5","Худ 6 – Юсуф 52","Юсуф 53 – Ибрахим 52","Аль-Хиджр 1 – Ан-Нахль 128","Аль-Исра 1 – Аль-Кахф 74","Аль-Кахф 75 – Та-Ха 135","Аль-Анбия 1 – Аль-Хадж 78","Аль-Муминун 1 – Аль-Фуркан 20","Аль-Фуркан 21 – Ан-Намль 55","Ан-Намль 56 – Аль-Анкабут 45","Аль-Анкабут 46 – Аль-Ахзаб 30","Аль-Ахзаб 31 – Ясин 27","Ясин 28 – Аз-Зумар 31","Аз-Зумар 32 – Фуссылат 46","Фуссылат 47 – Аль-Джасия 37","Аль-Ахкаф 1 – Аз-Зарият 30","Аз-Зарият 31 – Аль-Хадид 29","Аль-Муджадала 1 – Ат-Тахрим 12","Аль-Мульк 1 – Аль-Мурсалят 50","Ан-Наба 1 – Ан-Нас 6 (37 сур)"];
-const SECTIONS=[
- ["Аль-Фатиха, Аль-Бакара, Аль Имран","١–٥"],
- ["Ан-Ниса, Аль-Маида, Аль-Анам, Аль-Араф","٦–١٠"],
- ["От Ат-Тауба до Аль-Кахф","١١–١٥"],
- ["От Аль-Кахф до Ан-Намль","١٦–٢٠"],
- ["От Аль-Анкабут до Аль-Джасия","٢١–٢٥"],
- ["От Аль-Ахкаф до Ан-Нас","٢٦–٣٠"]
-];
-const PLAN=[
- ["Джуз 1–2",1,40,"Аль-Фатиха, Аль-Бакара (1–141)","Повтор джуза 1 ежедневно"],
- ["Джуз 3–5",41,100,"Аль-Бакара (142–286), Аль Имран","Повтор джузов 1–2 каждый день"],
- ["Джуз 6–8",101,160,"Ан-Ниса, Аль-Маида","Повтор джузов 1–5 циклично"],
- ["Джуз 9–11",161,220,"Аль-Анам, Аль-Араф","Повтор джузов 1–8 циклично"],
- ["Джуз 12–14",221,280,"Ат-Тауба, Юнус, Худ","Повтор джузов 1–11 циклично"],
- ["Джуз 15–17",281,340,"Аль-Исра, Аль-Кахф, Марьям","Повтор джузов 1–14 · половина Корана"],
- ["Джуз 18–20",341,400,"Та-Ха, Аль-Анбия, Аль-Хадж","Повтор джузов 1–17 циклично"],
- ["Джуз 21–23",401,460,"Аль-Муминун, Ан-Нур, Аль-Фуркан","Повтор джузов 1–20 циклично"],
- ["Джуз 24–25",461,510,"Аль-Касас, Аль-Анкабут, Ар-Рум","Повтор джузов 1–23 циклично"],
- ["Джуз 26–27",511,555,"Ясин, Ас-Саффат, Сад, Аз-Зумар","Повтор джузов 1–25 циклично"],
- ["Джуз 28–29",556,590,"Аль-Муджадала → Аль-Мурсалят","Повтор всего Корана 1–27"],
- ["Джуз 30",591,604,"Ан-Наба → Ан-Нас (37 сур)","Полный повтор всего Корана"]
-];
-const SLOTS=[["После Фаджра","05:00–06:30"],["Утро","08:00–09:00"],["День","13:00–14:00"],["После Асра","16:00–17:30"],["Вечер","20:00–21:00"]];
-const WEEK={
- wd:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Прослушивание нового урока","Старые джузы · 2–3 стр.","Финальный повтор дня"],
- fr:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Джума + повторение","Старые джузы · 2–3 стр.","Финальный повтор дня"],
- we:["Повтор недели + новое","Чтение устазу (если есть)","Отдых / лёгкое повторение","Старые джузы · 3–4 стр.","Полный повтор недели"]
-};
-const DOW=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
-const MON=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+const PLAN_PAGES=[[1,40],[41,100],[101,160],[161,220],[221,280],[281,340],[341,400],[401,460],[461,510],[511,555],[556,590],[591,604]];
+const PLAN_JUZ=["1–2","3–5","6–8","9–11","12–14","15–17","18–20","21–23","24–25","26–27","28–29","30"];
+
+/* ---------- language data ---------- */
+const DATA={
+ru:{
+ juz:["Аль-Фатиха 1 – Аль-Бакара 141","Аль-Бакара 142–252","Аль-Бакара 253 – Аль Имран 92","Аль Имран 93 – Ан-Ниса 23","Ан-Ниса 24–147","Ан-Ниса 148 – Аль-Маида 81","Аль-Маида 82 – Аль-Анам 110","Аль-Анам 111 – Аль-Араф 87","Аль-Араф 88 – Аль-Анфаль 40","Аль-Анфаль 41 – Ат-Тауба 92","Ат-Тауба 93 – Худ 5","Худ 6 – Юсуф 52","Юсуф 53 – Ибрахим 52","Аль-Хиджр 1 – Ан-Нахль 128","Аль-Исра 1 – Аль-Кахф 74","Аль-Кахф 75 – Та-Ха 135","Аль-Анбия 1 – Аль-Хадж 78","Аль-Муминун 1 – Аль-Фуркан 20","Аль-Фуркан 21 – Ан-Намль 55","Ан-Намль 56 – Аль-Анкабут 45","Аль-Анкабут 46 – Аль-Ахзаб 30","Аль-Ахзаб 31 – Ясин 27","Ясин 28 – Аз-Зумар 31","Аз-Зумар 32 – Фуссылат 46","Фуссылат 47 – Аль-Джасия 37","Аль-Ахкаф 1 – Аз-Зарият 30","Аз-Зарият 31 – Аль-Хадид 29","Аль-Муджадала 1 – Ат-Тахрим 12","Аль-Мульк 1 – Аль-Мурсалят 50","Ан-Наба 1 – Ан-Нас 6 (37 сур)"],
+ sections:["Аль-Фатиха, Аль-Бакара, Аль Имран","Ан-Ниса, Аль-Маида, Аль-Анам, Аль-Араф","От Ат-Тауба до Аль-Кахф","От Аль-Кахф до Ан-Намль","От Аль-Анкабут до Аль-Джасия","От Аль-Ахкаф до Ан-Нас"],
+ plan:[["Аль-Фатиха, Аль-Бакара (1–141)","Повтор джуза 1 ежедневно"],["Аль-Бакара (142–286), Аль Имран","Повтор джузов 1–2 каждый день"],["Ан-Ниса, Аль-Маида","Повтор джузов 1–5 циклично"],["Аль-Анам, Аль-Араф","Повтор джузов 1–8 циклично"],["Ат-Тауба, Юнус, Худ","Повтор джузов 1–11 циклично"],["Аль-Исра, Аль-Кахф, Марьям","Повтор джузов 1–14 · половина Корана"],["Та-Ха, Аль-Анбия, Аль-Хадж","Повтор джузов 1–17 циклично"],["Аль-Муминун, Ан-Нур, Аль-Фуркан","Повтор джузов 1–20 циклично"],["Аль-Касас, Аль-Анкабут, Ар-Рум","Повтор джузов 1–23 циклично"],["Ясин, Ас-Саффат, Сад, Аз-Зумар","Повтор джузов 1–25 циклично"],["Аль-Муджадала → Аль-Мурсалят","Повтор всего Корана 1–27"],["Ан-Наба → Ан-Нас (37 сур)","Полный повтор всего Корана"]],
+ slots:["После Фаджра","Утро","День","После Асра","Вечер"],
+ week:{wd:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Прослушивание нового урока","Старые джузы · 2–3 стр.","Финальный повтор дня"],
+       fr:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Джума + повторение","Старые джузы · 2–3 стр.","Финальный повтор дня"],
+       we:["Повтор недели + новое","Чтение устазу (если есть)","Отдых / лёгкое повторение","Старые джузы · 3–4 стр.","Полный повтор недели"]},
+ dow:["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"],
+ wkShort:["Пн","Вт","Ср","Чт","Пт","Сб / Вс"],
+ mon:["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"],
+ ranks:["Новичок","Ученик","Чтец","Хранитель аятов","Знаток мусхафа","Наставник"],hafiz:"Хафиз",
+ badges:{first:["Бисмиллях","Выучить первую страницу"],fatiha:["Открывающая","Страница 1: сура Аль-Фатиха"],p100:["Сотня","Выучить 100 страниц"],juz1:["Первый джуз","Выучить джуз целиком"],juz5:["Пять джузов","Пройти первый раздел пути"],half:["Половина пути","302 страницы: половина Корана"],baqara:["Корова","Сура Аль-Бакара, стр. 2–49"],kahf:["Пещера","Сура Аль-Кахф, стр. 293–304"],yasin:["Сердце Корана","Сура Ясин, стр. 440–445"],mulk:["Власть","Сура Аль-Мульк, стр. 562–564"],amma:["Джуз Амма","Последний джуз, стр. 582–604"],s7:["Неделя огня","Серия 7 дней подряд"],s30:["Месяц огня","Серия 30 дней подряд"],s100:["Сто дней","Серия 100 дней подряд"],fajr:["Ранняя птица","10 дней с подходом после Фаджра"],perfect:["Идеальный день","Все 5 подходов за день"],perfect30:["Дисциплина","30 идеальных дней"],rev50:["Мать учения","50 повторов джузов"],rated:["Самоанализ","Оценить 10 дней"],hafiz:["Хафиз","Выучить все 604 страницы"]}
+},
+kk:{
+ juz:["Әл-Фатиха 1 – Әл-Бақара 141","Әл-Бақара 142–252","Әл-Бақара 253 – Әли Имран 92","Әли Имран 93 – Ниса 23","Ниса 24–147","Ниса 148 – Мәида 81","Мәида 82 – Әнғам 110","Әнғам 111 – Ағраф 87","Ағраф 88 – Әнфал 40","Әнфал 41 – Тәубе 92","Тәубе 93 – Һуд 5","Һуд 6 – Юсуф 52","Юсуф 53 – Ибраһим 52","Хижр 1 – Нахл 128","Исра 1 – Кәһф 74","Кәһф 75 – Таһа 135","Әнбия 1 – Хаж 78","Мүминун 1 – Фурқан 20","Фурқан 21 – Нәмл 55","Нәмл 56 – Анкабут 45","Анкабут 46 – Ахзаб 30","Ахзаб 31 – Ясин 27","Ясин 28 – Зүмәр 31","Зүмәр 32 – Фуссилат 46","Фуссилат 47 – Жасия 37","Ахқаф 1 – Зарият 30","Зарият 31 – Хадид 29","Мүжадәлә 1 – Тахрим 12","Мүлк 1 – Мурсалат 50","Нәбә 1 – Нас 6 (37 сүре)"],
+ sections:["Әл-Фатиха, Әл-Бақара, Әли Имран","Ниса, Мәида, Әнғам, Ағраф","Тәубеден Кәһфке дейін","Кәһфтен Нәмлге дейін","Анкабуттан Жасияға дейін","Ахқафтан Насқа дейін"],
+ plan:[["Әл-Фатиха, Әл-Бақара (1–141)","1-параны күн сайын қайталау"],["Әл-Бақара (142–286), Әли Имран","1–2 параларды күн сайын қайталау"],["Ниса, Мәида","1–5 параларды кезекпен қайталау"],["Әнғам, Ағраф","1–8 параларды кезекпен қайталау"],["Тәубе, Юнус, Һуд","1–11 параларды кезекпен қайталау"],["Исра, Кәһф, Мәриям","1–14 параларды қайталау · Құранның жартысы"],["Таһа, Әнбия, Хаж","1–17 параларды кезекпен қайталау"],["Мүминун, Нұр, Фурқан","1–20 параларды кезекпен қайталау"],["Қасас, Анкабут, Рум","1–23 параларды кезекпен қайталау"],["Ясин, Саффат, Сад, Зүмәр","1–25 параларды кезекпен қайталау"],["Мүжадәләдан Мурсалатқа дейін","Бүкіл Құранды қайталау, 1–27"],["Нәбәдан Насқа дейін (37 сүре)","Бүкіл Құранды толық қайталау"]],
+ slots:["Таң намазынан кейін","Таңертең","Түсте","Екінтіден кейін","Кешке"],
+ week:{wd:["Жаңа сабақ · ½–1 бет","Соңғы 7 күнді қайталау","Жаңа сабақты тыңдау","Ескі паралар · 2–3 бет","Күннің соңғы қайталауы"],
+       fr:["Жаңа сабақ · ½–1 бет","Соңғы 7 күнді қайталау","Жұма + қайталау","Ескі паралар · 2–3 бет","Күннің соңғы қайталауы"],
+       we:["Аптаны қайталау + жаңа","Ұстазға оқу (болса)","Демалыс / жеңіл қайталау","Ескі паралар · 3–4 бет","Аптаны толық қайталау"]},
+ dow:["Жексенбі","Дүйсенбі","Сейсенбі","Сәрсенбі","Бейсенбі","Жұма","Сенбі"],
+ wkShort:["Дс","Сс","Ср","Бс","Жм","Сб / Жс"],
+ mon:["қаң","ақп","нау","сәу","мам","мау","шіл","там","қыр","қаз","қар","жел"],
+ ranks:["Жаңадан бастаушы","Шәкірт","Қари","Аят сақтаушы","Мұсхаф білгірі","Ұстаз"],hafiz:"Хафиз",
+ badges:{first:["Бисмиллаһ","Алғашқы бетті жаттау"],fatiha:["Ашушы","1-бет: Фатиха сүресі"],p100:["Жүздік","100 бет жаттау"],juz1:["Алғашқы пара","Бір параны толық жаттау"],juz5:["Бес пара","Жолдың алғашқы бөлімін өту"],half:["Жолдың жартысы","302 бет: Құранның жартысы"],baqara:["Сиыр","Бақара сүресі, 2–49 беттер"],kahf:["Үңгір","Кәһф сүресі, 293–304 беттер"],yasin:["Құранның жүрегі","Ясин сүресі, 440–445 беттер"],mulk:["Билік","Мүлк сүресі, 562–564 беттер"],amma:["Амма парасы","Соңғы пара, 582–604 беттер"],s7:["Оттай апта","Қатарынан 7 күн"],s30:["Оттай ай","Қатарынан 30 күн"],s100:["Жүз күн","Қатарынан 100 күн"],fajr:["Ерте тұрған","Таң намазынан кейінгі кезеңмен 10 күн"],perfect:["Мінсіз күн","Бір күнде 5 кезеңнің бәрі"],perfect30:["Тәртіп","30 мінсіз күн"],rev50:["Оқудың анасы","Параларды 50 рет қайталау"],rated:["Өзін-өзі талдау","10 күнді бағалау"],hafiz:["Хафиз","604 беттің бәрін жаттау"]}
+}};
+const SLOT_TIME=["05:00–06:30","08:00–09:00","13:00–14:00","16:00–17:30","20:00–21:00"];
 
 /* ---------- icons ---------- */
 const sv=(p,extra)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra||""}>${p}</svg>`;
@@ -483,17 +497,28 @@ const CHEST=open=>`<svg viewBox="0 0 52 52" aria-hidden="true">
 </svg>`;
 
 /* ---------- state ---------- */
-function blank(){return {start:iso(new Date()),pages:{},pageDate:{},reviews:{},revLog:{},days:{},demo:false,seen:null}}
-let S;
+function blank(){return {start:iso(new Date()),pages:{},pageDate:{},reviews:{},revLog:{},days:{},demo:false,seen:null,lang:S&&S.lang||"ru"}}
+let S=null;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 if(!S||typeof S!=="object")S=blank();
 for(const k of ["pages","pageDate","reviews","revLog","days"]) if(!S[k]||typeof S[k]!=="object") S[k]={};
 if(!S.start)S.start=iso(new Date());
+if(S.lang!=="kk")S.lang="ru";
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- i18n ---------- */
+const KK=()=>S.lang==="kk";
+const L=(ru,kk)=>KK()?kk:ru;
+const D=()=>DATA[S.lang];
+function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<10||h>=20)?b:c}
+const pl=(n,a,b,c,kk)=>KK()?kk:plural(n,a,b,c);
+const juzName=j=>L("Джуз "+j,j+"-пара");
+const juzLabel=i=>L("Джуз "+PLAN_JUZ[i],PLAN_JUZ[i]+" пара");
+const timesRu=n=>L(n+" "+plural(n,"раз","раза","раз"),n+" рет");
 
 const VIEWS=["path","today","map","badges","plan","week","juz","log","settings"];
 const MORE=["plan","week","juz","log","settings"];
-let view="path",logDate=iso(new Date()),popJuz=null,scrolledToCur=false;
+let view="path",logDate=iso(new Date()),popJuz=null,scrolledToCur=false,sheetOpen=null;
 {const h=location.hash.slice(1);if(VIEWS.includes(h))view=h}
 
 /* ---------- dates ---------- */
@@ -502,8 +527,8 @@ function parse(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function addMonths(d,n){const x=new Date(d);const day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+n);const last=new Date(x.getFullYear(),x.getMonth()+1,0).getDate();x.setDate(Math.min(day,last));return x}
 function diff(a,b){return Math.round((parse(iso(b))-parse(iso(a)))/864e5)}
-function fmt(d){return d.getDate()+" "+MON[d.getMonth()]}
-function fmtY(d){return d.getDate()+" "+MON[d.getMonth()]+" "+d.getFullYear()}
+function fmt(d){return d.getDate()+" "+D().mon[d.getMonth()]}
+function fmtY(d){return KK()?d.getFullYear()+" ж. "+fmt(d):fmt(d)+" "+d.getFullYear()}
 const today=()=>parse(iso(new Date()));
 
 /* ---------- derived ---------- */
@@ -515,8 +540,8 @@ function nextPage(){for(let p=1;p<=TOTAL;p++)if(!S.pages[p])return p;return null
 function monthStart(i){return addMonths(parse(S.start),i)}
 function monthIdx(d){const s=parse(S.start);if(d<s)return -1;for(let i=0;i<12;i++)if(d<monthStart(i+1))return i;return 12}
 function monthDays(i){return diff(monthStart(i),monthStart(i+1))}
-function rate(i){i=Math.max(0,Math.min(11,i));const m=PLAN[i];return Math.max(1,Math.ceil((m[2]-m[1]+1)/monthDays(i)))}
-function expected(d){const i=monthIdx(d);if(i<0)return 0;if(i>11)return TOTAL;const m=PLAN[i];const el=diff(monthStart(i),d)+1;return m[1]-1+Math.round((m[2]-m[1]+1)*el/monthDays(i))}
+function rate(i){i=Math.max(0,Math.min(11,i));const m=PLAN_PAGES[i];return Math.max(1,Math.ceil((m[1]-m[0]+1)/monthDays(i)))}
+function expected(d){const i=monthIdx(d);if(i<0)return 0;if(i>11)return TOTAL;const m=PLAN_PAGES[i];const el=diff(monthStart(i),d)+1;return m[0]-1+Math.round((m[1]-m[0]+1)*el/monthDays(i))}
 function juzStat(j){const [a,b]=juzRange(j);let n=0,first=null,last=null;for(let p=a;p<=b;p++){if(S.pages[p]){n++;const d=S.pageDate[p];if(d){if(!first||d<first)first=d;if(!last||d>last)last=d}}}return {n,total:b-a+1,first,last}}
 function juzDone(){let c=0;for(let j=0;j<30;j++){const s=juzStat(j);if(s.n===s.total)c++}return c}
 function pagesOn(ds){let n=0;for(const k in S.pageDate)if(S.pageDate[k]===ds&&S.pages[k])n++;return n}
@@ -527,18 +552,18 @@ function weekKey(d){const w=d.getDay();return w===0||w===6?"we":w===5?"fr":"wd"}
 
 /* ---------- game ---------- */
 const XP={page:10,slot:5,perfect:15,review:20,rating:5,juz:100,chest:25,streakDay:3};
-const RANKS=[[1,"Новичок","مبتدئ"],[3,"Ученик","طالب"],[6,"Чтец","قارئ"],[10,"Хранитель аятов","حامل"],[15,"Знаток мусхафа","متقن"],[20,"Наставник","معلّم"]];
+const RANK_LV=[1,3,6,10,15,20],RANK_AR=["مبتدئ","طالب","قارئ","حامل","متقن","معلّم"];
 function xpFor(n){return 50*n*(n-1)}
 function levelOf(x){let n=1;while(xpFor(n+1)<=x)n++;return n}
-function rankOf(n){if(learned()>=TOTAL)return ["Хафиз","حافظ"];let r=RANKS[0];for(const k of RANKS)if(n>=k[0])r=k;return [r[1],r[2]]}
+function rankOf(n){if(learned()>=TOTAL)return [D().hafiz,"حافظ"];let r=0;RANK_LV.forEach((v,i)=>{if(n>=v)r=i});return [D().ranks[r],RANK_AR[r]]}
 function quests(ds){
   const d=parse(ds),r=rate(monthIdx(d)),rec=S.days[ds]||{},sl=(rec.slots||[]).filter(Boolean).length,pg=pagesOn(ds);
   const rv=(S.revLog[ds]||0)>0||!!(rec.slots||[])[1];
   return [
-    {t:`Выучи ${r} ${plural(r,"новую страницу","новые страницы","новых страниц")}`,x:r*XP.page,cur:Math.min(pg,r),max:r,ic:"book"},
-    {t:"Пройди все 5 подходов дня",x:5*XP.slot+XP.perfect,cur:sl,max:5,ic:"sun"},
-    {t:"Сделай повторение",x:XP.review,cur:rv?1:0,max:1,ic:"loop"},
-    {t:"Оцени свой день",x:XP.rating,cur:(rec.f&&rec.f.rating)?1:0,max:1,ic:"pen"}
+    {t:L(`Выучи ${r} ${plural(r,"новую страницу","новые страницы","новых страниц")}`,`${r} жаңа бет жатта`),x:r*XP.page,cur:Math.min(pg,r),max:r,ic:"book"},
+    {t:L("Пройди все 5 подходов дня","Күннің 5 кезеңін түгел өт"),x:5*XP.slot+XP.perfect,cur:sl,max:5,ic:"sun"},
+    {t:L("Сделай повторение","Қайталау жаса"),x:XP.review,cur:rv?1:0,max:1,ic:"loop"},
+    {t:L("Оцени свой день","Күніңді бағала"),x:XP.rating,cur:(rec.f&&rec.f.rating)?1:0,max:1,ic:"pen"}
   ];
 }
 function questsDone(ds){return quests(ds).every(q=>q.cur>=q.max)}
@@ -550,85 +575,74 @@ function xpTotal(){
 }
 function cntRange(a,b){let n=0;for(let p=a;p<=b;p++)if(S.pages[p])n++;return n}
 function badgeList(){
-  const L=learned(),J=juzDone(),bs=bestStreak(),revs=Object.values(S.reviews).reduce((a,b)=>a+(b||0),0);
+  const L0=learned(),J=juzDone(),bs=bestStreak(),revs=Object.values(S.reviews).reduce((a,b)=>a+(b||0),0);
   const days=Object.values(S.days),perfect=days.filter(d=>(d.slots||[]).filter(Boolean).length===5).length,
     fajr=days.filter(d=>(d.slots||[])[0]).length,rated=days.filter(d=>d.f&&d.f.rating).length;
-  const B=(id,ic,t,d,cur,max)=>({id,ic,t,d,cur:Math.min(cur,max),max,ok:cur>=max});
+  const T=D().badges;
+  const B=(id,ic,cur,max)=>({id,ic,t:T[id][0],d:T[id][1],cur:Math.min(cur,max),max,ok:cur>=max});
   return [
-    B("first","book","Бисмиллях","Выучить первую страницу",L,1),
-    B("fatiha","star","Открывающая","Страница 1: сура Аль-Фатиха",S.pages[1]?1:0,1),
-    B("p100","book","Сотня","Выучить 100 страниц",L,100),
-    B("juz1","crown","Первый джуз","Выучить джуз целиком",J,1),
-    B("juz5","crown","Пять джузов","Пройти первый раздел пути",J,5),
-    B("half","moon","Половина пути","302 страницы: половина Корана",L,302),
-    B("baqara","book","Корова","Сура Аль-Бакара, стр. 2–49",cntRange(2,49),48),
-    B("kahf","moon","Пещера","Сура Аль-Кахф, стр. 293–304",cntRange(293,304),12),
-    B("yasin","star","Сердце Корана","Сура Ясин, стр. 440–445",cntRange(440,445),6),
-    B("mulk","crown","Власть","Сура Аль-Мульк, стр. 562–564",cntRange(562,564),3),
-    B("amma","star","Джуз Амма","Последний джуз, стр. 582–604",cntRange(582,604),23),
-    B("s7","fire","Неделя огня","Серия 7 дней подряд",bs,7),
-    B("s30","fire","Месяц огня","Серия 30 дней подряд",bs,30),
-    B("s100","fire","Сто дней","Серия 100 дней подряд",bs,100),
-    B("fajr","sun","Ранняя птица","10 дней с подходом после Фаджра",fajr,10),
-    B("perfect","check","Идеальный день","Все 5 подходов за день",perfect,1),
-    B("perfect30","check","Дисциплина","30 идеальных дней",perfect,30),
-    B("rev50","loop","Мать учения","50 повторов джузов",revs,50),
-    B("rated","pen","Самоанализ","Оценить 10 дней",rated,10),
-    B("hafiz","crown","Хафиз","Выучить все 604 страницы",L,TOTAL)
+    B("first","book",L0,1),B("fatiha","star",S.pages[1]?1:0,1),B("p100","book",L0,100),B("juz1","crown",J,1),B("juz5","crown",J,5),
+    B("half","moon",L0,302),B("baqara","book",cntRange(2,49),48),B("kahf","moon",cntRange(293,304),12),B("yasin","star",cntRange(440,445),6),
+    B("mulk","crown",cntRange(562,564),3),B("amma","star",cntRange(582,604),23),B("s7","fire",bs,7),B("s30","fire",bs,30),B("s100","fire",bs,100),
+    B("fajr","sun",fajr,10),B("perfect","check",perfect,1),B("perfect30","check",perfect,30),B("rev50","loop",revs,50),B("rated","pen",rated,10),B("hafiz","crown",L0,TOTAL)
   ];
 }
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<10||h>=20)?b:c}
 function ranges(arr){if(!arr.length)return "";const out=[];let a=arr[0],b=arr[0];for(let i=1;i<=arr.length;i++){if(arr[i]===b+1){b=arr[i];continue}out.push(a===b?a:a+"–"+b);a=b=arr[i]}return out.join(", ")}
 function toast(t){const el=$("#toast");el.innerHTML=IC.bolt+"<span>"+esc(t)+"</span>";el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1900)}
 function setPage(p,state,date){if(state){S.pages[p]=state;if(!S.pageDate[p])S.pageDate[p]=date||iso(new Date())}else{delete S.pages[p];delete S.pageDate[p]}save()}
 function day(){if(!S.days[logDate])S.days[logDate]={};return S.days[logDate]}
 const bar=(v,max,c,cls)=>`<div class="bar ${cls||""}" role="progressbar" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${v}"><i style="width:${max?Math.min(100,v/max*100):0}%;${c?"--c:"+c:""}"></i></div>`;
+const langSwitch=()=>`<div class="lang" role="group" aria-label="${L("Язык","Тіл")}"><button data-lang="ru" aria-pressed="${!KK()}" lang="ru">РУС</button><button data-lang="kk" aria-pressed="${KK()}" lang="kk">ҚАЗ</button></div>`;
 
 /* ---------- chrome: nav, hud, side ---------- */
-const NAV=[["path","Путь","path"],["today","Сегодня","sun"],["map","Мусхаф","book"],["badges","Награды","medal"]];
-const NAV_MORE=[["plan","План года","cal"],["week","Распорядок","clock"],["juz","30 джузов","layers"],["log","Журнал","chart"],["settings","Настройки","gear"]];
-function logo(){return star("",5)+"<b>Хифз</b>"}
+const NAV=()=>[["path",L("Путь","Жол"),"path"],["today",L("Сегодня","Бүгін"),"sun"],["map",L("Мусхаф","Мұсхаф"),"book"],["badges",L("Награды","Марапат"),"medal"]];
+const NAV_MORE=()=>[["plan",L("План года","Жылдық жоспар"),"cal"],["week",L("Распорядок","Күн тәртібі"),"clock"],["juz",L("30 джузов","30 пара"),"layers"],["log",L("Журнал","Күнделік"),"chart"],["settings",L("Настройки","Баптаулар"),"gear"]];
+function logo(){return star("",5)+"<b>"+L("Хифз","Хифз")+"</b>"}
 function renderChrome(){
   const X=xpTotal(),lv=levelOf(X),st=streak();
-  $("#topLogo").innerHTML=logo();$("#railLogo").innerHTML=logo();
-  $("#chips").innerHTML=`<span class="hc fire" title="Серия дней">${IC.fire}${st}</span><span class="hc xp" title="Опыт">${IC.bolt}${X}</span><span class="hc lv" title="Уровень">${IC.star}${lv}</span>`;
+  document.documentElement.lang=S.lang;
+  document.title=L("Хифз за год","Бір жылдағы хифз");
+  $("#topLogo").innerHTML=logo();$("#railLogo").innerHTML=logo()+langSwitch();
+  $("#topLang").innerHTML=langSwitch();
+  $("#chips").innerHTML=`<span class="hc fire" title="${L("Дней подряд","Қатарынан күндер")}">${IC.fire}${st}</span><span class="hc xp" title="${L("Опыт","Тәжірибе")}">${IC.bolt}${X}</span><span class="hc lv" title="${L("Уровень","Деңгей")}">${IC.star}${lv}</span>`;
   const cur=MORE.includes(view)?"more":view;
-  $("#tabbar").innerHTML=NAV.concat([["more","Ещё","more"]]).map(n=>`<button class="tb" data-go="${n[0]}" ${cur===n[0]?'aria-current="page"':""}>${IC[n[2]]}<span>${n[1]}</span></button>`).join("");
+  $("#tabbar").setAttribute("aria-label",L("Разделы","Бөлімдер"));
+  $("#tabbar").innerHTML=NAV().concat([["more",L("Ещё","Тағы"),"more"]]).map(n=>`<button class="tb" data-go="${n[0]}" ${cur===n[0]?'aria-current="page"':""}>${IC[n[2]]}<span>${n[1]}</span></button>`).join("");
   const rb=n=>`<button class="rb" data-go="${n[0]}" ${view===n[0]?'aria-current="page"':""}>${IC[n[2]]}${n[1]}</button>`;
-  $("#railNav").innerHTML=NAV.map(rb).join("")+"<hr>"+NAV_MORE.map(rb).join("");
+  $("#railNav").innerHTML=NAV().map(rb).join("")+"<hr>"+NAV_MORE().map(rb).join("");
   $("#side").innerHTML=levelCard()+statsCard()+questCard(iso(new Date()))+demoCard();
 }
 function levelCard(){
   const X=xpTotal(),lv=levelOf(X),rk=rankOf(lv),a=xpFor(lv),b=xpFor(lv+1);
   return `<div class="card"><div class="lvcard"><div class="lvstar">${star("gold-star",5)}<b>${lv}</b></div>
-   <div style="min-width:0"><div class="eyebrow">Уровень ${lv}</div><div class="rank">${rk[0]} <span class="ar">${rk[1]}</span></div></div></div>
-   <div style="margin-top:14px">${bar(X-a,b-a,"var(--gold)")}<div class="xpline"><span>${X-a} / ${b-a} XP</span><span>до уровня ${lv+1}</span></div></div></div>`;
+   <div style="min-width:0"><div class="eyebrow">${L("Уровень "+lv,lv+"-деңгей")}</div><div class="rank">${rk[0]} <span class="ar">${rk[1]}</span></div></div></div>
+   <div style="margin-top:14px">${bar(X-a,b-a,"var(--gold)")}<div class="xpline"><span>${X-a} / ${b-a} XP</span><span>${L("до уровня "+(lv+1),(lv+1)+"-деңгейге дейін")}</span></div></div></div>`;
 }
 function statsCard(){
-  const L=learned(),exp=expected(today()),d=L-exp,mi=monthIdx(today()),st=streak();
-  const pace=mi<0?["—","старт "+fmt(parse(S.start))]:d>=0?[d?"+"+d:"0","стр. к плану"]:["−"+(-d),"стр. от плана"];
-  return `<div class="card"><div class="card-h" style="margin-bottom:12px"><h2>Прогресс</h2><span class="pill ${mi<0?"":d>=0?"ok":"warn"}">${mi<0?"Старт впереди":d>=0?"По плану":"Догоняем"}</span></div>
+  const Lp=learned(),exp=expected(today()),d=Lp-exp,mi=monthIdx(today()),st=streak();
+  const pace=mi<0?["—",L("старт ","старт ")+fmt(parse(S.start))]:d>=0?[d?"+"+d:"0",L("стр. к плану","бет жоспардан артық")]:["−"+(-d),L("стр. от плана","бет жоспардан кем")];
+  return `<div class="card"><div class="card-h" style="margin-bottom:12px"><h2>${L("Прогресс","Прогресс")}</h2><span class="pill ${mi<0?"":d>=0?"ok":"warn"}">${mi<0?L("Старт впереди","Старт алда"):d>=0?L("По плану","Жоспар бойынша"):L("Догоняем","Қуып жетеміз")}</span></div>
   <div class="stats">
-   <div class="st fire">${IC.fire}<b>${st}</b><span>${plural(st,"день","дня","дней")} подряд</span></div>
-   <div class="st page">${IC.book}<b>${L}</b><span>из 604 стр.</span></div>
-   <div class="st juz">${IC.star}<b>${juzDone()}</b><span>из 30 джузов</span></div>
+   <div class="st fire">${IC.fire}<b>${st}</b><span>${L(plural(st,"день","дня","дней")+" подряд","күн қатарынан")}</span></div>
+   <div class="st page">${IC.book}<b>${Lp}</b><span>${L("из 604 стр.","604 беттен")}</span></div>
+   <div class="st juz">${IC.star}<b>${juzDone()}</b><span>${L("из 30 джузов","30 парадан")}</span></div>
    <div class="st pace">${IC.target}<b>${pace[0]}</b><span>${pace[1]}</span></div>
   </div></div>`;
 }
 function questCard(ds){
   const q=quests(ds),done=q.filter(x=>x.cur>=x.max).length,all=done===q.length;
-  return `<div class="card"><div class="card-h"><div><h2>Квесты дня</h2><div class="sub">${done} из ${q.length} выполнено</div></div></div>
+  return `<div class="card"><div class="card-h"><div><h2>${L("Квесты дня","Күннің тапсырмалары")}</h2><div class="sub">${L(`${done} из ${q.length} выполнено`,`${done} / ${q.length} орындалды`)}</div></div></div>
   <div class="quests">${q.map(x=>{const ok=x.cur>=x.max;return `<div class="q${ok?" done":""}"><div class="qi">${ok?IC.check:IC[x.ic]}</div><div style="min-width:0"><div class="qt">${x.t}</div>${bar(x.cur,x.max,ok?"var(--accent)":"var(--gold)")}<div class="qm"><span class="num">${x.cur} / ${x.max}</span><span>+${x.x} XP</span></div></div></div>`}).join("")}</div>
-  <div class="chest${all?" open":""}">${CHEST(all)}<div><b>${all?"Сундук открыт: +"+XP.chest+" XP":"Сундук дня"}</b><span>${all?"Все квесты выполнены. Машааллах!":"Откроется после всех четырёх квестов"}</span></div></div></div>`;
+  <div class="chest${all?" open":""}">${CHEST(all)}<div><b>${all?L("Сундук открыт: +","Сандық ашылды: +")+XP.chest+" XP":L("Сундук дня","Күннің сандығы")}</b><span>${all?L("Все квесты выполнены. Машааллах!","Барлық тапсырма орындалды. Машаллаһ!"):L("Откроется после всех четырёх квестов","Төрт тапсырма орындалғанда ашылады")}</span></div></div></div>`;
 }
 function demoCard(){
   const any=learned()+Object.keys(S.days).length;
-  if(S.demo)return `<div class="demo"><p><b>Это пример данных.</b> Так выглядит игра через 44 дня хифза.</p><button class="b3 gold sm" data-act="clearDemo">Начать свой хифз</button></div>`;
-  if(!any)return `<div class="demo"><p><b>Ассаляму алейкум!</b> Каждая выученная страница даёт опыт и ведёт вас по пути из 30 джузов.</p><button class="b3 ghost sm" data-act="loadDemo">Показать пример</button></div>`;
+  if(S.demo)return `<div class="demo"><p><b>${L("Это пример данных.","Бұл үлгі деректер.")}</b> ${L("Так выглядит игра через 44 дня хифза.","Хифздың 44-күніндегі ойын осындай болады.")}</p><button class="b3 gold sm" data-act="clearDemo">${L("Начать свой хифз","Өз хифзымды бастау")}</button></div>`;
+  if(!any)return `<div class="demo"><p><b>${L("Ассаляму алейкум!","Ассаламу алейкум!")}</b> ${L("Каждая выученная страница даёт опыт и ведёт вас по пути из 30 джузов.","Әр жатталған бет тәжірибе береді және сізді 30 парадан тұратын жолмен алға жылжытады.")}</p><button class="b3 ghost sm" data-act="loadDemo">${L("Показать пример","Үлгіні көрсету")}</button></div>`;
   return "";
 }
 
@@ -639,32 +653,32 @@ function vPath(){
   for(let s=0;s<6;s++){
     let n=0;for(let j=s*5;j<s*5+5;j++){const st=juzStat(j);if(st.n===st.total)n++}
     const a=JUZ_START[s*5],b=s<5?JUZ_START[s*5+5]-1:TOTAL;
-    html+=`<section class="section"><div class="banner" style="--sec:var(--sec${s%3+1})"><div><div class="eyebrow">Раздел ${s+1} · стр. ${a}–${b}</div><h3>${SECTIONS[s][0]}</h3></div><span class="ar" aria-hidden="true">${JUZ_AR[s*5]}</span>
-      <div class="bp"><div class="bar"><i style="width:${n/5*100}%"></i></div><span class="num">${n} / 5 джузов</span></div></div><div class="nodes">`;
+    html+=`<section class="section"><div class="banner" style="--sec:var(--sec${s%3+1})"><div><div class="eyebrow">${L(`Раздел ${s+1} · стр. ${a}–${b}`,`${s+1}-бөлім · ${a}–${b} беттер`)}</div><h3>${D().sections[s]}</h3></div><span class="ar" aria-hidden="true">${JUZ_AR[s*5]}</span>
+      <div class="bp"><div class="bar"><i style="width:${n/5*100}%"></i></div><span class="num">${L(`${n} / 5 джузов`,`${n} / 5 пара`)}</span></div></div><div class="nodes">`;
     for(let j=s*5;j<s*5+5;j++){
       const st=juzStat(j),done=st.n===st.total,isCur=j===cur;
       const cls=done?"done":isCur?"cur":st.n?"part":"";
       const lab=done?IC.star:(isCur||st.n)?String(j+1):IC.lock;
       const R=50,C=2*Math.PI*R;
       const ring=isCur?`<svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--cell)" stroke-width="7"/><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--gold)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(C*st.n/st.total).toFixed(1)} ${C.toFixed(1)}"/></svg>`:"";
-      html+=`<div class="nodewrap${isCur?" is-cur":""}${popJuz===j?" open":""}" style="--o:${OFF[(j+s*2)%8]}">${isCur?`<span class="bubble">${st.n?"Продолжить":"Начать"}</span>`:""}
-        <button class="node ${cls}" data-node="${j}" aria-expanded="${popJuz===j}" aria-label="Джуз ${j+1}, выучено ${st.n} из ${st.total} страниц">${ring}${star()}<span class="lab">${lab}</span></button>
+      html+=`<div class="nodewrap${isCur?" is-cur":""}${popJuz===j?" open":""}" style="--o:${OFF[(j+s*2)%8]}">${isCur?`<span class="bubble">${st.n?L("Продолжить","Жалғастыру"):L("Начать","Бастау")}</span>`:""}
+        <button class="node ${cls}" data-node="${j}" aria-expanded="${popJuz===j}" aria-label="${juzName(j+1)}, ${L(`выучено ${st.n} из ${st.total} страниц`,`${st.n} / ${st.total} бет жатталды`)}">${ring}${star()}<span class="lab">${lab}</span></button>
         ${popJuz===j?popover(j,st,done,isCur):""}</div>`;
     }
     html+=`</div></section>`;
   }
-  html+=`<div class="finish">${star("gold-star",7)}<div class="ar">حافظ</div><div class="h-display" style="font-size:18px">Хафиз Корана</div><div class="sub">604 страницы · 114 сур · 6236 аятов</div></div>`;
+  html+=`<div class="finish">${star("gold-star",7)}<div class="ar">حافظ</div><div class="h-display" style="font-size:18px">${L("Хафиз Корана","Құран хафизы")}</div><div class="sub">${L("604 страницы · 114 сур · 6236 аятов","604 бет · 114 сүре · 6236 аят")}</div></div>`;
   return html;
 }
 function popover(j,st,done,isCur){
   const [a,b]=juzRange(j),rv=S.reviews[j]||0;
-  const action=isCur?`<button class="b3 gold wide" data-go="today">Учить страницы</button>`:done?`<button class="b3 wide" data-rev="${j}">+1 повтор · +${XP.review} XP</button>`:`<button class="b3 ghost wide" data-go="map">Открыть на карте</button>`;
-  return `<div class="pop" role="dialog" aria-label="Джуз ${j+1}"><h4>Джуз ${j+1} <span class="ar">${JUZ_AR[j]}</span></h4><p>${JUZ_RU[j]}<br>Страницы ${a}–${b}${done?` · повторён ${rv} ${plural(rv,"раз","раза","раз")}`:""}</p>${bar(st.n,st.total,done?"var(--accent)":"var(--gold)","thin")}<div class="sub num" style="margin-top:-4px">${st.n} из ${st.total} страниц</div>${action}</div>`;
+  const action=isCur?`<button class="b3 gold wide" data-go="today">${L("Учить страницы","Беттерді жаттау")}</button>`:done?`<button class="b3 wide" data-rev="${j}">${L("+1 повтор","+1 қайталау")} · +${XP.review} XP</button>`:`<button class="b3 ghost wide" data-go="map">${L("Открыть на карте","Картадан ашу")}</button>`;
+  return `<div class="pop" role="dialog" aria-label="${juzName(j+1)}"><h4>${juzName(j+1)} <span class="ar">${JUZ_AR[j]}</span></h4><p>${D().juz[j]}<br>${L(`Страницы ${a}–${b}`,`${a}–${b} беттер`)}${done?" · "+L("повторён "+timesRu(rv),timesRu(rv)+" қайталанды"):""}</p>${bar(st.n,st.total,done?"var(--accent)":"var(--gold)","thin")}<div class="sub num" style="margin-top:-4px">${L(`${st.n} из ${st.total} страниц`,`${st.n} / ${st.total} бет`)}</div>${action}</div>`;
 }
 
 function vToday(){
-  const d=parse(logDate),ds=logDate,isToday=ds===iso(new Date());
-  const rec=S.days[ds]||{},slots=rec.slots||[],wk=WEEK[weekKey(d)];
+  const d=parse(logDate),ds=logDate,isToday=ds===iso(new Date()),DW=D().dow;
+  const rec=S.days[ds]||{},slots=rec.slots||[],wk=D().week[weekKey(d)];
   const mi=Math.max(0,Math.min(11,monthIdx(d))),r=rate(monthIdx(d));
   const doneHere=Object.keys(S.pageDate).filter(k=>S.pageDate[k]===ds&&S.pages[k]).map(Number).sort((a,b)=>a-b);
   const chips=[...doneHere];let need=Math.max(1,r-doneHere.length);
@@ -674,107 +688,109 @@ function vToday(){
   const weak=weakList(),F=rec.f||{};
   const fld=(id,lab,num)=>`<div class="f"><label for="f_${id}">${lab}</label><input id="f_${id}" data-f="${id}" ${num?'inputmode="numeric"':""} value="${esc(F[id])}" autocomplete="off"></div>`;
   const ta=(id,lab)=>`<div class="f full"><label for="f_${id}">${lab}</label><textarea id="f_${id}" data-f="${id}">${esc(F[id])}</textarea></div>`;
-  const yn=(id,lab)=>`<div class="f"><span class="lb">${lab}</span><div class="seg" data-yn="${id}"><button type="button" aria-pressed="${F[id]===true}" data-v="1">Да</button><button type="button" aria-pressed="${F[id]===false}" data-v="0">Нет</button></div></div>`;
-  const rv=n=>`${n} ${plural(n,"раз","раза","раз")}`;
+  const yn=(id,lab)=>`<div class="f"><span class="lb">${lab}</span><div class="seg" data-yn="${id}"><button type="button" aria-pressed="${F[id]===true}" data-v="1">${L("Да","Иә")}</button><button type="button" aria-pressed="${F[id]===false}" data-v="0">${L("Нет","Жоқ")}</button></div></div>`;
+  const pagesWord=L("Страницы ","Беттер: ");
   return `
-  <div class="card" style="padding:12px"><div class="daynav"><button class="ib" data-day="-1" aria-label="Предыдущий день">${IC.left}</button>
-    <div class="t"><b>${isToday?"Сегодня":DOW[d.getDay()]}</b><span>${isToday?DOW[d.getDay()].toLowerCase()+", ":""}${fmtY(d)}${isToday?"":` · <a href="#today" data-day="0" style="color:inherit;font-weight:800">к сегодня</a>`}</span></div>
-    <button class="ib" data-day="1" aria-label="Следующий день">${IC.right}</button></div></div>
-  <div class="card"><div class="card-h"><div><h2>Урок дня</h2><div class="sub">Месяц ${mi+1} · ${PLAN[mi][0]} · норма ${r} ${plural(r,"страница","страницы","страниц")} в день</div></div><span class="pill go">+${XP.page} XP</span></div>
-    <div class="tiles">${chips.map(n=>{const ok=!!S.pages[n];return `<button class="tile${ok?" done":""}" data-pg="${n}" aria-pressed="${ok}"><small>стр.</small><b class="num">${n}</b><span>${ok?"Выучено":"Джуз "+(juzOf(n)+1)}</span></button>`}).join("")||'<div class="empty">Все 604 страницы выучены. Машааллах!</div>'}</div>
-    <div class="sub">Нажмите на страницу, когда выучите её наизусть. Повторное нажатие снимает отметку.</div></div>
+  <div class="card" style="padding:12px"><div class="daynav"><button class="ib" data-day="-1" aria-label="${L("Предыдущий день","Алдыңғы күн")}">${IC.left}</button>
+    <div class="t"><b>${isToday?L("Сегодня","Бүгін"):DW[d.getDay()]}</b><span>${isToday?DW[d.getDay()].toLowerCase()+", ":""}${fmtY(d)}${isToday?"":` · <a href="#today" data-day="0" style="color:inherit;font-weight:800">${L("к сегодня","бүгінге")}</a>`}</span></div>
+    <button class="ib" data-day="1" aria-label="${L("Следующий день","Келесі күн")}">${IC.right}</button></div></div>
+  <div class="card"><div class="card-h"><div><h2>${L("Урок дня","Күннің сабағы")}</h2><div class="sub">${L(`Месяц ${mi+1} · ${juzLabel(mi)} · норма ${r} ${plural(r,"страница","страницы","страниц")} в день`,`${mi+1}-ай · ${juzLabel(mi)} · күніне ${r} бет`)}</div></div><span class="pill go">+${XP.page} XP</span></div>
+    <div class="tiles">${chips.map(n=>{const ok=!!S.pages[n];return `<button class="tile${ok?" done":""}" data-pg="${n}" aria-pressed="${ok}"><small>${L("стр.","бет")}</small><b class="num">${n}</b><span>${ok?L("Выучено","Жатталды"):juzName(juzOf(n)+1)}</span></button>`}).join("")||`<div class="empty">${L("Все 604 страницы выучены. Машааллах!","604 беттің бәрі жатталды. Машаллаһ!")}</div>`}</div>
+    <div class="sub">${L("Нажмите на страницу, когда выучите её наизусть. Повторное нажатие снимает отметку.","Бетті жатқа білгенде басыңыз. Қайта бассаңыз, белгі алынады.")}</div></div>
   <div class="only-m">${questCard(ds)}</div>
-  <div class="card"><div class="card-h"><div><h2>Пять подходов</h2><div class="sub">${DOW[d.getDay()]} · ${slots.filter(Boolean).length} из 5 · все пять дают ещё +${XP.perfect} XP</div></div></div>
-    <div class="slots">${SLOTS.map((s,i)=>`<button class="slot${slots[i]?" on":""}" data-slot="${i}" aria-pressed="${!!slots[i]}"><span class="ck">${IC.check}</span><span style="min-width:0"><span class="tm">${s[0]} · ${s[1]}</span><br><span class="w">${wk[i]}</span></span><span class="xp">+${XP.slot}</span></button>`).join("")}</div></div>
-  <div class="card"><div class="card-h"><div><h2>Что повторить</h2><div class="sub">Подсказки по вашим отметкам</div></div></div>
+  <div class="card"><div class="card-h"><div><h2>${L("Пять подходов","Бес кезең")}</h2><div class="sub">${DW[d.getDay()]} · ${slots.filter(Boolean).length} / 5 · ${L("все пять дают ещё","бесеуі үшін тағы")} +${XP.perfect} XP</div></div></div>
+    <div class="slots">${D().slots.map((s,i)=>`<button class="slot${slots[i]?" on":""}" data-slot="${i}" aria-pressed="${!!slots[i]}"><span class="ck">${IC.check}</span><span style="min-width:0"><span class="tm">${s} · ${SLOT_TIME[i]}</span><br><span class="w">${wk[i]}</span></span><span class="xp">+${XP.slot}</span></button>`).join("")}</div></div>
+  <div class="card"><div class="card-h"><div><h2>${L("Что повторить","Не қайталау керек")}</h2><div class="sub">${L("Подсказки по вашим отметкам","Белгілеріңіз бойынша кеңес")}</div></div></div>
     <div class="tips">
-      <div class="tip"><div class="qi" style="color:var(--accent)">${IC.loop}</div><div><b>Последние 7 дней</b>${wk7.length?"Страницы "+ranges(wk7):"Новых страниц за неделю пока нет"}</div></div>
-      <div class="tip"><div class="qi" style="color:var(--gold)">${IC.star}</div><div><b>Старые джузы</b>${lj.length?lj.slice(0,2).map(j=>`Джуз ${j+1} <span class="muted">· повторён ${rv(S.reviews[j]||0)}</span>`).join("<br>"):"Появятся, когда выучите первый джуз целиком"}
-        ${lj.length?`<div style="margin-top:10px"><button class="b3 sm" data-rev="${lj[0]}">+1 повтор джуза ${lj[0]+1}</button></div>`:""}</div></div>
-      <div class="tip"><div class="qi" style="color:var(--coral)">${IC.alert}</div><div><b>Сложные места</b>${weak.length?"Страницы "+ranges(weak):"Отмечайте сложные страницы на карте мусхафа"}</div></div>
+      <div class="tip"><div class="qi" style="color:var(--accent)">${IC.loop}</div><div><b>${L("Последние 7 дней","Соңғы 7 күн")}</b>${wk7.length?pagesWord+ranges(wk7):L("Новых страниц за неделю пока нет","Осы аптада жаңа бет әлі жоқ")}</div></div>
+      <div class="tip"><div class="qi" style="color:var(--gold)">${IC.star}</div><div><b>${L("Старые джузы","Ескі паралар")}</b>${lj.length?lj.slice(0,2).map(j=>`${juzName(j+1)} <span class="muted">· ${L("повторён "+timesRu(S.reviews[j]||0),timesRu(S.reviews[j]||0)+" қайталанды")}</span>`).join("<br>"):L("Появятся, когда выучите первый джуз целиком","Алғашқы параны толық жаттағанда пайда болады")}
+        ${lj.length?`<div style="margin-top:10px"><button class="b3 sm" data-rev="${lj[0]}">${L("+1 повтор джуза "+(lj[0]+1),(lj[0]+1)+"-параны +1 қайталау")}</button></div>`:""}</div></div>
+      <div class="tip"><div class="qi" style="color:var(--coral)">${IC.alert}</div><div><b>${L("Сложные места","Қиын жерлер")}</b>${weak.length?pagesWord+ranges(weak):L("Отмечайте сложные страницы на карте мусхафа","Қиын беттерді мұсхаф картасында белгілеңіз")}</div></div>
     </div></div>
-  <details class="card sheet" ${sheetOpen===null?(F.rating?"":"open"):sheetOpen?"open":""}><summary><div><h2>Лист хафиза</h2><div class="sub">${F.rating?"Оценка дня: "+F.rating+" из 10":"Заполните вечером · оценка дня +"+XP.rating+" XP"}</div></div><span class="chev">${IC.down}</span></summary>
+  <details class="card sheet" ${sheetOpen===null?(F.rating?"":"open"):sheetOpen?"open":""}><summary><div><h2>${L("Лист хафиза","Хафиз парағы")}</h2><div class="sub">${F.rating?L("Оценка дня: "+F.rating+" из 10","Күн бағасы: "+F.rating+" / 10"):L("Заполните вечером · оценка дня +","Кешке толтырыңыз · күн бағасы +")+XP.rating+" XP"}</div></div><span class="chev">${IC.down}</span></summary>
     <form class="form" onsubmit="return false">
-      <div class="fs"><h3>Утро · новый материал</h3><div class="fields">${fld("page","Джуз / страница")}${fld("ayat","Аяты: начало — конец")}${fld("reps","Повторений нового",1)}${fld("mins","Время заучивания, мин",1)}</div></div>
-      <div class="fs"><h3>День · повтор недельного</h3><div class="fields">${fld("revPages","Страницы повторения")}${fld("revTimes","Сколько раз прочитано",1)}${ta("hard","Сложные места")}</div></div>
-      <div class="fs"><h3>Вечер · старые джузы</h3><div class="fields">${fld("oldJuz","Джузы на повторение")}${fld("oldPages","Страниц пройдено",1)}${yn("audio","Слушал аудио")}${yn("ustaz","Читал устазу")}</div></div>
-      <div class="fs"><h3>Оценка дня</h3><div class="f"><span class="lb">Самооценка, 1–10</span><div class="rating">${Array.from({length:10},(_,i)=>`<button type="button" data-rt="${i+1}" aria-pressed="${F.rating===i+1}">${i+1}</button>`).join("")}</div></div>
-        <div class="fields">${ta("difficult","Что далось трудно")}${ta("dua","Дуа / заметки")}</div></div>
+      <div class="fs"><h3>${L("Утро · новый материал","Таңертең · жаңа сабақ")}</h3><div class="fields">${fld("page",L("Джуз / страница","Пара / бет"))}${fld("ayat",L("Аяты: начало — конец","Аяттар: басы — соңы"))}${fld("reps",L("Повторений нового","Жаңасын қайталау саны"),1)}${fld("mins",L("Время заучивания, мин","Жаттау уақыты, мин"),1)}</div></div>
+      <div class="fs"><h3>${L("День · повтор недельного","Түсте · апталықты қайталау")}</h3><div class="fields">${fld("revPages",L("Страницы повторения","Қайталанған беттер"))}${fld("revTimes",L("Сколько раз прочитано","Неше рет оқылды"),1)}${ta("hard",L("Сложные места","Қиын жерлер"))}</div></div>
+      <div class="fs"><h3>${L("Вечер · старые джузы","Кешке · ескі паралар")}</h3><div class="fields">${fld("oldJuz",L("Джузы на повторение","Қайталанатын паралар"))}${fld("oldPages",L("Страниц пройдено","Өтілген беттер"),1)}${yn("audio",L("Слушал аудио","Аудио тыңдадым"))}${yn("ustaz",L("Читал устазу","Ұстазға оқыдым"))}</div></div>
+      <div class="fs"><h3>${L("Оценка дня","Күнді бағалау")}</h3><div class="f"><span class="lb">${L("Самооценка, 1–10","Өзін-өзі бағалау, 1–10")}</span><div class="rating">${Array.from({length:10},(_,i)=>`<button type="button" data-rt="${i+1}" aria-pressed="${F.rating===i+1}">${i+1}</button>`).join("")}</div></div>
+        <div class="fields">${ta("difficult",L("Что далось трудно","Не қиын болды"))}${ta("dua",L("Дуа / заметки","Дұға / жазбалар"))}</div></div>
     </form></details>`;
 }
-let sheetOpen=null;
 
 function vMap(){
-  const np=nextPage(),L=learned(),exp=expected(today()),R=56,C=2*Math.PI*R;
+  const np=nextPage(),Lp=learned(),exp=expected(today()),R=56,C=2*Math.PI*R;
+  const pg=p=>L("Стр. "+p,p+"-бет"),lr=L("выучена","жатталды"),wk=L("сложная","қиын");
   let rows="";
   for(let j=0;j<30;j++){const [a,b]=juzRange(j),s=juzStat(j);let cells="";
-    for(let p=a;p<=b;p++){const st=S.pages[p];cells+=`<button class="cell${st===1?" l":st===2?" w":""}${p===np?" n":""}" data-cell="${p}" title="Стр. ${p}${st===1?" · выучена":st===2?" · сложная":""}" aria-label="Страница ${p}${st===1?", выучена":st===2?", сложная":""}"></button>`}
+    for(let p=a;p<=b;p++){const st=S.pages[p];const lab=pg(p)+(st===1?" · "+lr:st===2?" · "+wk:"");cells+=`<button class="cell${st===1?" l":st===2?" w":""}${p===np?" n":""}" data-cell="${p}" title="${lab}" aria-label="${lab}"></button>`}
     rows+=`<div class="mrow${s.n===s.total?" full":""}"><div class="mname"><b>${j+1}</b><span class="ar">${JUZ_AR[j]}</span></div><div class="cells">${cells}</div><div class="mpct">${s.n}/${s.total}</div></div>`}
   return `<div class="card"><div class="mapsum">
     <div class="donut"><svg viewBox="0 0 132 132" aria-hidden="true"><circle cx="66" cy="66" r="${R}" fill="none" stroke="var(--cell)" stroke-width="14"/>
-      <circle cx="66" cy="66" r="${R}" fill="none" stroke="var(--mark-ok)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${(C*L/TOTAL).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 66 66)"/>
+      <circle cx="66" cy="66" r="${R}" fill="none" stroke="var(--mark-ok)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${(C*Lp/TOTAL).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 66 66)"/>
       <line x1="66" y1="3" x2="66" y2="23" stroke="var(--gold)" stroke-width="4" stroke-linecap="round" transform="rotate(${(exp/TOTAL*360).toFixed(1)} 66 66)"/></svg>
-      <div class="c"><b>${(L/TOTAL*100).toFixed(L&&L<60?1:0)}%</b><span class="num">${L} из 604</span></div></div>
-    <div style="display:grid;gap:10px;min-width:0"><h2>Карта мусхафа</h2><div class="sub">604 страницы мадинского мусхафа, по строке на джуз. Нажатие переключает: выучено → сложное место → снять отметку.</div>
-      <div class="legend"><span><i class="l"></i>Выучено</span><span><i class="w"></i>Сложное место</span><span><i class="n"></i>Следующая</span><span><i class="p"></i>План на сегодня: ${exp} стр.</span></div></div></div>
+      <div class="c"><b>${(Lp/TOTAL*100).toFixed(Lp&&Lp<60?1:0)}%</b><span class="num">${L(Lp+" из 604","604-тен "+Lp)}</span></div></div>
+    <div style="display:grid;gap:10px;min-width:0"><h2>${L("Карта мусхафа","Мұсхаф картасы")}</h2><div class="sub">${L("604 страницы мадинского мусхафа, по строке на джуз. Нажатие переключает: выучено → сложное место → снять отметку.","Мәдина мұсхафының 604 беті, әр параға бір жол. Басу ауыстырады: жатталды → қиын жер → белгіні алу.")}</div>
+      <div class="legend"><span><i class="l"></i>${L("Выучено","Жатталды")}</span><span><i class="w"></i>${L("Сложное место","Қиын жер")}</span><span><i class="n"></i>${L("Следующая","Келесі")}</span><span><i class="p"></i>${L(`План на сегодня: ${exp} стр.`,`Бүгінгі жоспар: ${exp} бет`)}</span></div></div></div>
     <div class="map">${rows}</div></div>`;
 }
 
 function vBadges(){
   const B=badgeList(),ok=B.filter(b=>b.ok).length;
-  return `<div class="card"><div class="card-h"><div><h2>Награды</h2><div class="sub">Открыто ${ok} из ${B.length}</div></div></div>
-  <div class="badges">${B.map(b=>`<div class="badge${b.ok?"":" locked"}"><div class="medal">${star()}<span class="ic">${b.ok?IC[b.ic]:IC.lock}</span></div><div class="bt">${b.t}</div><div class="bd">${b.d}</div>${b.ok?`<span class="pill ok">Получено</span>`:bar(b.cur,b.max,"var(--gold)","thin")+`<div class="bn">${b.cur} / ${b.max}</div>`}</div>`).join("")}</div></div>
-  <div class="card"><div class="card-h"><div><h2>Как начисляется опыт</h2><div class="sub">Звание меняется на 3, 6, 10, 15 и 20 уровнях. «Хафиз» — за все 604 страницы.</div></div></div>
-  <div class="xpt"><span>Выученная страница</span><span>+${XP.page}</span><span>Подход распорядка</span><span>+${XP.slot}</span><span>Идеальный день, 5 из 5</span><span>+${XP.perfect}</span><span>Повтор джуза</span><span>+${XP.review}</span><span>Оценка дня</span><span>+${XP.rating}</span><span>Сундук дня</span><span>+${XP.chest}</span><span>Выученный джуз</span><span>+${XP.juz}</span><span>Каждый день лучшей серии</span><span>+${XP.streakDay}</span></div></div>`;
+  const row=(a,b)=>`<span>${a}</span><span>+${b}</span>`;
+  return `<div class="card"><div class="card-h"><div><h2>${L("Награды","Марапаттар")}</h2><div class="sub">${L(`Открыто ${ok} из ${B.length}`,`Ашылды: ${ok} / ${B.length}`)}</div></div></div>
+  <div class="badges">${B.map(b=>`<div class="badge${b.ok?"":" locked"}"><div class="medal">${star()}<span class="ic">${b.ok?IC[b.ic]:IC.lock}</span></div><div class="bt">${b.t}</div><div class="bd">${b.d}</div>${b.ok?`<span class="pill ok">${L("Получено","Алынды")}</span>`:bar(b.cur,b.max,"var(--gold)","thin")+`<div class="bn">${b.cur} / ${b.max}</div>`}</div>`).join("")}</div></div>
+  <div class="card"><div class="card-h"><div><h2>${L("Как начисляется опыт","Тәжірибе қалай есептеледі")}</h2><div class="sub">${L("Звание меняется на 3, 6, 10, 15 и 20 уровнях. «Хафиз» — за все 604 страницы.","Атақ 3, 6, 10, 15 және 20-деңгейде ауысады. «Хафиз» — 604 беттің бәрі үшін.")}</div></div></div>
+  <div class="xpt">${row(L("Выученная страница","Жатталған бет"),XP.page)}${row(L("Подход распорядка","Күн тәртібінің кезеңі"),XP.slot)}${row(L("Идеальный день, 5 из 5","Мінсіз күн, 5 / 5"),XP.perfect)}${row(L("Повтор джуза","Параны қайталау"),XP.review)}${row(L("Оценка дня","Күн бағасы"),XP.rating)}${row(L("Сундук дня","Күннің сандығы"),XP.chest)}${row(L("Выученный джуз","Жатталған пара"),XP.juz)}${row(L("Каждый день лучшей серии","Ең ұзақ серияның әр күні"),XP.streakDay)}</div></div>`;
 }
 
-function subtabs(){return `<div class="subtabs only-m">${NAV_MORE.map(n=>`<button data-go="${n[0]}" aria-pressed="${view===n[0]}">${n[1]}</button>`).join("")}</div>`}
+function subtabs(){return `<div class="subtabs only-m">${NAV_MORE().map(n=>`<button data-go="${n[0]}" aria-pressed="${view===n[0]}">${n[1]}</button>`).join("")}</div>`}
 
 function vPlan(){
   const mi=monthIdx(today());
-  return subtabs()+`<div class="card"><div class="card-h"><div><h2>План на 12 месяцев</h2><div class="sub">Даты от дня старта, ${fmtY(parse(S.start))}</div></div></div><div class="plan">${PLAN.map((m,i)=>{
-    let n=0;for(let p=m[1];p<=m[2];p++)if(S.pages[p])n++;const tot=m[2]-m[1]+1,s=monthStart(i),e=addDays(monthStart(i+1),-1);
+  return subtabs()+`<div class="card"><div class="card-h"><div><h2>${L("План на 12 месяцев","12 айлық жоспар")}</h2><div class="sub">${L("Даты от дня старта, ","Күндер старттан есептеледі, ")}${fmtY(parse(S.start))}</div></div></div><div class="plan">${PLAN_PAGES.map((m,i)=>{
+    let n=0;for(let p=m[0];p<=m[1];p++)if(S.pages[p])n++;const tot=m[1]-m[0]+1,s=monthStart(i),e=addDays(monthStart(i+1),-1);
     const cls=n===tot?"done":i===mi?"cur":"";
-    const pill=n===tot?'<span class="pill ok">Выполнено</span>':i===mi?'<span class="pill go">Сейчас</span>':i<mi?'<span class="pill warn">Не закрыт</span>':n?'<span class="pill">В процессе</span>':"";
-    return `<div class="prow ${cls}"><div class="pm">${n===tot?IC.check:i+1}</div><div class="pmain"><div class="spread"><span class="s">${m[0]} · стр. ${m[1]}–${m[2]}</span>${pill}</div>
-      <div class="r">${fmt(s)} – ${fmt(e)} · ≈${rate(i)} стр. в день</div><div>${m[3]}</div><div class="r">${m[4]}</div>${bar(n,tot,n===tot?"var(--accent)":"var(--gold)","thin")}</div></div>`}).join("")}</div></div>`;
+    const pill=n===tot?`<span class="pill ok">${L("Выполнено","Орындалды")}</span>`:i===mi?`<span class="pill go">${L("Сейчас","Қазір")}</span>`:i<mi?`<span class="pill warn">${L("Не закрыт","Жабылмаған")}</span>`:n?`<span class="pill">${L("В процессе","Үдерісте")}</span>`:"";
+    return `<div class="prow ${cls}"><div class="pm">${n===tot?IC.check:i+1}</div><div class="pmain"><div class="spread"><span class="s">${juzLabel(i)} · ${L(`стр. ${m[0]}–${m[1]}`,`${m[0]}–${m[1]} беттер`)}</span>${pill}</div>
+      <div class="r">${fmt(s)} – ${fmt(e)} · ${L(`≈${rate(i)} стр. в день`,`күніне ≈${rate(i)} бет`)}</div><div>${D().plan[i][0]}</div><div class="r">${D().plan[i][1]}</div>${bar(n,tot,n===tot?"var(--accent)":"var(--gold)","thin")}</div></div>`}).join("")}</div></div>`;
 }
 function vWeek(){
-  const w=new Date().getDay(),col=w===0||w===6?5:w-1,heads=["Пн","Вт","Ср","Чт","Пт","Сб / Вс"];
-  const cell=(si,ci)=>(ci===5?WEEK.we:ci===4?WEEK.fr:WEEK.wd)[si];
-  return subtabs()+`<div class="card"><div class="card-h"><div><h2>Недельный распорядок</h2><div class="sub">Пять подходов, привязанных к намазам. Сегодняшний столбец выделен.</div></div></div>
-  <div class="tablewrap"><table><thead><tr><th>Время</th>${heads.map((x,i)=>`<th class="${i===col?"tcol":""}">${x}</th>`).join("")}</tr></thead>
-  <tbody>${SLOTS.map((s,si)=>`<tr><td>${s[0]}<span>${s[1]}</span></td>${heads.map((_,ci)=>`<td class="${ci===col?"tcol":""}">${cell(si,ci)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+  const w=new Date().getDay(),col=w===0||w===6?5:w-1,heads=D().wkShort,W=D().week;
+  const cell=(si,ci)=>(ci===5?W.we:ci===4?W.fr:W.wd)[si];
+  return subtabs()+`<div class="card"><div class="card-h"><div><h2>${L("Недельный распорядок","Апталық күн тәртібі")}</h2><div class="sub">${L("Пять подходов, привязанных к намазам. Сегодняшний столбец выделен.","Намаз уақыттарына байланған бес кезең. Бүгінгі баған белгіленген.")}</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>${L("Время","Уақыт")}</th>${heads.map((x,i)=>`<th class="${i===col?"tcol":""}">${x}</th>`).join("")}</tr></thead>
+  <tbody>${D().slots.map((s,si)=>`<tr><td>${s}<span>${SLOT_TIME[si]}</span></td>${heads.map((_,ci)=>`<td class="${ci===col?"tcol":""}">${cell(si,ci)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
 }
 function vJuz(){
   const np=nextPage(),cur=np?juzOf(np):-1;
   return subtabs()+`<div class="juzgrid">${Array.from({length:30},(_,j)=>{const s=juzStat(j),done=s.n===s.total;
-    const pill=done?'<span class="pill ok">Выучен</span>':j===cur?'<span class="pill go">Сейчас</span>':s.n?'<span class="pill">В процессе</span>':'<span class="pill">Не начат</span>';
+    const pill=done?`<span class="pill ok">${L("Выучен","Жатталды")}</span>`:j===cur?`<span class="pill go">${L("Сейчас","Қазір")}</span>`:s.n?`<span class="pill">${L("В процессе","Үдерісте")}</span>`:`<span class="pill">${L("Не начат","Басталмаған")}</span>`;
     const dates=s.first?`${fmt(parse(s.first))}${done&&s.last?" → "+fmt(parse(s.last)):" → …"}`:"";
-    return `<article class="card juz"><div class="top"><b>${j+1}</b><span class="ar">${JUZ_AR[j]}</span></div><div class="rg">${JUZ_RU[j]}</div>
+    return `<article class="card juz"><div class="top"><b>${j+1}</b><span class="ar">${JUZ_AR[j]}</span></div><div class="rg">${D().juz[j]}</div>
       ${bar(s.n,s.total,done?"var(--accent)":"var(--gold)","thin")}<div class="spread"><span class="sub num" style="margin:0">${s.n}/${s.total}${dates?" · "+dates:""}</span>${pill}</div>
-      <div class="spread"><span class="sub" style="margin:0">Повторений</span><span class="counter"><button class="ib" data-rv="${j}" data-d="-1" aria-label="Минус повтор">−</button><b>${S.reviews[j]||0}</b><button class="ib" data-rv="${j}" data-d="1" aria-label="Плюс повтор">+</button></span></div></article>`}).join("")}</div>`;
+      <div class="spread"><span class="sub" style="margin:0">${L("Повторений","Қайталау")}</span><span class="counter"><button class="ib" data-rv="${j}" data-d="-1" aria-label="${L("Минус повтор","Қайталауды азайту")}">−</button><b>${S.reviews[j]||0}</b><button class="ib" data-rv="${j}" data-d="1" aria-label="${L("Плюс повтор","Қайталауды қосу")}">+</button></span></div></article>`}).join("")}</div>`;
 }
 function vLog(){
   const t=today(),off=(t.getDay()+6)%7,startW=addDays(t,-(7*25)-off);let cells="";
   for(let d=new Date(startW);d<=addDays(t,6-off);d=addDays(d,1)){
     const ds=iso(d);if(d>t){cells+=`<i style="visibility:hidden"></i>`;continue}
     const pg=pagesOn(ds),sl=((S.days[ds]||{}).slots||[]).filter(Boolean).length,sc=pg>=2||sl>=4?3:pg>=1||sl>=2?2:sl>=1?1:0;
-    cells+=`<i class="${sc?"a"+sc:""}${ds===iso(t)?" t":""}" title="${fmtY(d)}: ${pg} стр., ${sl}/5 подходов"></i>`}
+    cells+=`<i class="${sc?"a"+sc:""}${ds===iso(t)?" t":""}" title="${fmtY(d)}: ${L(`${pg} стр., ${sl}/5 подходов`,`${pg} бет, ${sl}/5 кезең`)}"></i>`}
   const days=[...new Set(Object.keys(S.days).concat(Object.values(S.pageDate)))].sort().reverse();
   const ent=days.map(ds=>{const r=S.days[ds]||{},f=r.f||{},pg=pagesOn(ds),sl=(r.slots||[]).filter(Boolean).length;
-    const note=[f.page&&("Новое: "+f.page),f.difficult&&("Трудно: "+f.difficult),f.dua].filter(Boolean).join(" · ");
-    return `<button class="entry" data-open="${ds}"><span class="d">${fmtY(parse(ds))}</span><span class="m">${pg} стр. · ${sl}/5${f.rating?" · оценка "+f.rating:""}</span>${note?`<span class="x">${esc(note)}</span>`:""}</button>`}).join("");
-  return subtabs()+`<div class="card"><div class="card-h"><div><h2>Последние полгода</h2><div class="sub">Чем ярче клетка, тем больше сделано: новые страницы и подходы.</div></div></div><div class="heat">${cells}</div>
-    <div class="legend" style="margin-top:12px"><span>Меньше</span><i></i><i class="a1"></i><i class="a2"></i><i class="l"></i><span>Больше</span></div></div>
-  <div class="card"><div class="card-h"><div><h2>Записи по дням</h2><div class="sub">Нажмите на день, чтобы открыть его лист хафиза.</div></div></div><div class="entries">${ent||'<div class="empty">Записей пока нет. Отметьте подходы во вкладке «Сегодня».</div>'}</div></div>`;
+    const note=[f.page&&(L("Новое: ","Жаңа: ")+f.page),f.difficult&&(L("Трудно: ","Қиын: ")+f.difficult),f.dua].filter(Boolean).join(" · ");
+    return `<button class="entry" data-open="${ds}"><span class="d">${fmtY(parse(ds))}</span><span class="m">${pg} ${L("стр.","бет")} · ${sl}/5${f.rating?" · "+L("оценка ","баға ")+f.rating:""}</span>${note?`<span class="x">${esc(note)}</span>`:""}</button>`}).join("");
+  return subtabs()+`<div class="card"><div class="card-h"><div><h2>${L("Последние полгода","Соңғы жарты жыл")}</h2><div class="sub">${L("Чем ярче клетка, тем больше сделано: новые страницы и подходы.","Ұяшық неғұрлым ашық болса, соғұрлым көп істелген: жаңа беттер мен кезеңдер.")}</div></div></div><div class="heat">${cells}</div>
+    <div class="legend" style="margin-top:12px"><span>${L("Меньше","Аз")}</span><i></i><i class="a1"></i><i class="a2"></i><i class="l"></i><span>${L("Больше","Көп")}</span></div></div>
+  <div class="card"><div class="card-h"><div><h2>${L("Записи по дням","Күндік жазбалар")}</h2><div class="sub">${L("Нажмите на день, чтобы открыть его лист хафиза.","Хафиз парағын ашу үшін күнді басыңыз.")}</div></div></div><div class="entries">${ent||`<div class="empty">${L("Записей пока нет. Отметьте подходы во вкладке «Сегодня».","Әзірге жазба жоқ. «Бүгін» бөлімінде кезеңдерді белгілеңіз.")}</div>`}</div></div>`;
 }
 function vSettings(){
-  return subtabs()+`<div class="card setting"><h2>Дата старта</h2><div class="sub">От неё считается план на 12 месяцев и норма страниц в день.</div><input type="date" id="startDate" value="${S.start}"></div>
-  <div class="card setting"><h2>Резервная копия</h2><div class="sub">Данные хранятся в этом браузере. Скопируйте код и сохраните в заметках. На другом устройстве вставьте его и нажмите «Восстановить».</div>
-    <textarea class="bk" id="bk" aria-label="Код резервной копии" placeholder="Сюда вставляется код резервной копии"></textarea>
-    <div class="row"><button class="b3 sm" data-act="bkCopy">Скопировать данные</button><button class="b3 ghost sm" data-act="bkLoad">Восстановить</button></div></div>
-  <div class="card setting"><h2>Пример и сброс</h2><div class="row" id="resetZone"><button class="b3 ghost sm" data-act="loadDemo">Показать пример</button><button class="b3 danger sm" data-act="reset">Сбросить всё</button></div></div>`;
+  return subtabs()+`<div class="card setting"><h2>${L("Язык","Тіл")}</h2><div class="sub">${L("Интерфейс, названия сур и план переключаются сразу.","Интерфейс, сүре атаулары мен жоспар бірден ауысады.")}</div>${langSwitch()}</div>
+  <div class="card setting"><h2>${L("Дата старта","Старт күні")}</h2><div class="sub">${L("От неё считается план на 12 месяцев и норма страниц в день.","12 айлық жоспар мен күнделікті бет нормасы осы күннен есептеледі.")}</div><input type="date" id="startDate" value="${S.start}"></div>
+  <div class="card setting"><h2>${L("Резервная копия","Сақтық көшірме")}</h2><div class="sub">${L("Данные хранятся в этом браузере. Скопируйте код и сохраните в заметках. На другом устройстве вставьте его и нажмите «Восстановить».","Деректер осы браузерде сақталады. Кодты көшіріп, жазбаларға сақтаңыз. Басқа құрылғыда оны қойып, «Қалпына келтіру» түймесін басыңыз.")}</div>
+    <textarea class="bk" id="bk" aria-label="${L("Код резервной копии","Сақтық көшірме коды")}" placeholder="${L("Сюда вставляется код резервной копии","Сақтық көшірме коды осында қойылады")}"></textarea>
+    <div class="row"><button class="b3 sm" data-act="bkCopy">${L("Скопировать данные","Деректерді көшіру")}</button><button class="b3 ghost sm" data-act="bkLoad">${L("Восстановить","Қалпына келтіру")}</button></div></div>
+  <div class="card setting"><h2>${L("Пример и сброс","Үлгі және тазалау")}</h2><div class="row" id="resetZone"><button class="b3 ghost sm" data-act="loadDemo">${L("Показать пример","Үлгіні көрсету")}</button><button class="b3 danger sm" data-act="reset">${L("Сбросить всё","Бәрін тазалау")}</button></div></div>`;
 }
 
 /* ---------- render ---------- */
@@ -794,40 +810,42 @@ document.addEventListener("click",e=>{
   if(popJuz!==null&&!e.target.closest(".pop")&&!(t&&t.dataset.node!==undefined)){popJuz=null;if(!t){render();return}}
   if(!t)return;
   const A=t.dataset.act;
+  if(t.dataset.lang){if(S.lang!==t.dataset.lang){S.lang=t.dataset.lang;save();render();toast(L("Язык: русский","Тіл: қазақша"))}return}
   if(t.dataset.go)return go(t.dataset.go==="more"?"plan":t.dataset.go);
   if(t.dataset.node!==undefined){const j=+t.dataset.node;popJuz=popJuz===j?null:j;return render()}
   if(A==="loadDemo")return loadDemo();
-  if(A==="clearDemo"){S=blank();save();scrolledToCur=false;render();return toast("Бисмиллях! Начинаем ваш хифз")}
+  if(A==="clearDemo"){S=blank();save();scrolledToCur=false;render();return toast(L("Бисмиллях! Начинаем ваш хифз","Бисмиллаһ! Хифзыңызды бастаймыз"))}
   if(t.dataset.day!==undefined){e.preventDefault();const n=+t.dataset.day;logDate=n?iso(addDays(parse(logDate),n)):iso(new Date());sheetOpen=null;return render()}
-  if(t.dataset.pg){const p=+t.dataset.pg;if(S.pages[p])setPage(p,0);else{setPage(p,1,logDate);toast("Страница "+p+" · +"+XP.page+" XP")}return render()}
-  if(t.dataset.slot!==undefined){const d=day(),i=+t.dataset.slot;d.slots=d.slots||[];d.slots[i]=!d.slots[i];save();if(d.slots[i])toast(d.slots.filter(Boolean).length===5?"Идеальный день · +"+(XP.slot+XP.perfect)+" XP":"+"+XP.slot+" XP");return render()}
+  if(t.dataset.pg){const p=+t.dataset.pg;if(S.pages[p])setPage(p,0);else{setPage(p,1,logDate);toast(L("Страница "+p,p+"-бет")+" · +"+XP.page+" XP")}return render()}
+  if(t.dataset.slot!==undefined){const d=day(),i=+t.dataset.slot;d.slots=d.slots||[];d.slots[i]=!d.slots[i];save();if(d.slots[i])toast(d.slots.filter(Boolean).length===5?L("Идеальный день","Мінсіз күн")+" · +"+(XP.slot+XP.perfect)+" XP":"+"+XP.slot+" XP");return render()}
   if(t.dataset.cell){const p=+t.dataset.cell,nx=((S.pages[p]||0)+1)%3;if(!nx)setPage(p,0);else{S.pages[p]=nx;if(!S.pageDate[p])S.pageDate[p]=iso(new Date());save()}return render()}
-  if(t.dataset.rv!==undefined){const j=+t.dataset.rv,dd=+t.dataset.d,td=iso(new Date());if(dd<0&&!(S.reviews[j]>0))return;S.reviews[j]=(S.reviews[j]||0)+dd;S.revLog[td]=Math.max(0,(S.revLog[td]||0)+dd);save();if(dd>0)toast("Повтор джуза "+(j+1)+" · +"+XP.review+" XP");return render()}
-  if(t.dataset.rev!==undefined){const j=+t.dataset.rev,td=view==="today"?logDate:iso(new Date());S.reviews[j]=(S.reviews[j]||0)+1;S.revLog[td]=(S.revLog[td]||0)+1;save();popJuz=null;render();return toast("Повтор джуза "+(j+1)+" · +"+XP.review+" XP")}
-  if(t.dataset.rt){const d=day();d.f=d.f||{};const v=+t.dataset.rt;d.f.rating=d.f.rating===v?undefined:v;save();if(d.f.rating)toast("Оценка дня · +"+XP.rating+" XP");return render()}
+  const revToast=j=>toast(L("Повтор джуза "+(j+1),(j+1)+"-параны қайталау")+" · +"+XP.review+" XP");
+  if(t.dataset.rv!==undefined){const j=+t.dataset.rv,dd=+t.dataset.d,td=iso(new Date());if(dd<0&&!(S.reviews[j]>0))return;S.reviews[j]=(S.reviews[j]||0)+dd;S.revLog[td]=Math.max(0,(S.revLog[td]||0)+dd);save();if(dd>0)revToast(j);return render()}
+  if(t.dataset.rev!==undefined){const j=+t.dataset.rev,td=view==="today"?logDate:iso(new Date());S.reviews[j]=(S.reviews[j]||0)+1;S.revLog[td]=(S.revLog[td]||0)+1;save();popJuz=null;render();return revToast(j)}
+  if(t.dataset.rt){const d=day();d.f=d.f||{};const v=+t.dataset.rt;d.f.rating=d.f.rating===v?undefined:v;save();if(d.f.rating)toast(L("Оценка дня","Күн бағасы")+" · +"+XP.rating+" XP");return render()}
   const yn=t.closest("[data-yn]");if(yn){const d=day();d.f=d.f||{};const k=yn.dataset.yn,v=t.dataset.v==="1";d.f[k]=d.f[k]===v?undefined:v;save();yn.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",d.f[k]!==undefined&&(b.dataset.v==="1")===d.f[k]));return}
   if(t.dataset.open){logDate=t.dataset.open;return go("today")}
   if(t.id==="mclose"){$("#modal").innerHTML="";return showNext()}
-  if(A==="bkCopy"){const txt=JSON.stringify(S),ta=$("#bk");ta.value=txt;const fb=()=>{ta.focus();ta.select();toast("Код выделен, скопируйте его")};
-    try{navigator.clipboard.writeText(txt).then(()=>toast("Скопировано. Сохраните код в заметках"),fb)}catch(_){fb()}return}
-  if(A==="bkLoad"){try{const o=JSON.parse($("#bk").value);if(!o||typeof o.pages!=="object")throw 0;S=Object.assign(blank(),o);save();render();toast("Данные восстановлены")}catch(_){toast("Код не распознан. Вставьте его целиком")}return}
-  if(A==="reset"){$("#resetZone").innerHTML=`<span class="sub" style="margin:0">Удалить все отметки без возврата?</span><button class="b3 danger sm" data-act="resetYes">Да, удалить</button><button class="b3 ghost sm" data-act="resetNo">Отмена</button>`;return}
+  if(A==="bkCopy"){const txt=JSON.stringify(S),ta=$("#bk");ta.value=txt;const fb=()=>{ta.focus();ta.select();toast(L("Код выделен, скопируйте его","Код белгіленді, оны көшіріңіз"))};
+    try{navigator.clipboard.writeText(txt).then(()=>toast(L("Скопировано. Сохраните код в заметках","Көшірілді. Кодты жазбаларға сақтаңыз")),fb)}catch(_){fb()}return}
+  if(A==="bkLoad"){try{const o=JSON.parse($("#bk").value);if(!o||typeof o.pages!=="object")throw 0;const lang=S.lang;S=Object.assign(blank(),o);if(S.lang!=="kk"&&S.lang!=="ru")S.lang=lang;save();render();toast(L("Данные восстановлены","Деректер қалпына келтірілді"))}catch(_){toast(L("Код не распознан. Вставьте его целиком","Код танылмады. Оны толық қойыңыз"))}return}
+  if(A==="reset"){$("#resetZone").innerHTML=`<span class="sub" style="margin:0">${L("Удалить все отметки без возврата?","Барлық белгіні қайтарымсыз өшіру керек пе?")}</span><button class="b3 danger sm" data-act="resetYes">${L("Да, удалить","Иә, өшіру")}</button><button class="b3 ghost sm" data-act="resetNo">${L("Отмена","Болдырмау")}</button>`;return}
   if(A==="resetNo")return render();
-  if(A==="resetYes"){S=blank();save();render();return toast("Все данные удалены")}
+  if(A==="resetYes"){S=blank();save();render();return toast(L("Все данные удалены","Барлық деректер өшірілді"))}
 });
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if($("#modal").innerHTML){$("#modal").innerHTML="";showNext()}else if(popJuz!==null){popJuz=null;render()}}});
 document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.f;if(!k)return;const d=day();d.f=d.f||{};d.f[k]=e.target.value;save()});
-document.addEventListener("change",e=>{if(e.target.id==="startDate"&&e.target.value){S.start=e.target.value;save();render();toast("Дата старта сохранена")}});
+document.addEventListener("change",e=>{if(e.target.id==="startDate"&&e.target.value){S.start=e.target.value;save();render();toast(L("Дата старта сохранена","Старт күні сақталды"))}});
 
 function loadDemo(){
   const t=today(),start=addDays(t,-44);S=blank();S.demo=true;S.start=iso(start);
   let p=1;
   for(let i=0;i<44;i++){const d=iso(addDays(start,i));if(i%9===6&&i<30)continue;const n=i<14?1:2;for(let k=0;k<n&&p<=72;k++){S.pages[p]=1;S.pageDate[p]=d;p++}
-    S.days[d]={slots:[true,true,i%3!==0,true,i%4!==1],f:i%5===0?{page:"Джуз "+(juzOf(p-1)+1)+" / стр. "+(p-1),reps:"20",mins:"45",rating:7+(i%3),difficult:i%10===0?"Переход между аятами 8 и 9":"",audio:true}:{}}}
+    S.days[d]={slots:[true,true,i%3!==0,true,i%4!==1],f:i%5===0?{page:juzName(juzOf(p-1)+1)+" / "+L("стр. ","бет ")+(p-1),reps:"20",mins:"45",rating:7+(i%3),difficult:i%10===0?L("Переход между аятами 8 и 9","8 және 9-аяттың арасындағы ауысу"):"",audio:true}:{}}}
   [14,15,33,41].forEach(x=>{if(S.pages[x])S.pages[x]=2});
   S.reviews={0:9,1:3,2:1};S.revLog[iso(addDays(t,-1))]=2;
   S.seen={level:levelOf(xpTotal()),badges:badgeList().filter(b=>b.ok).map(b=>b.id)};
-  save();logDate=iso(new Date());scrolledToCur=false;go("path");toast("Загружен пример за 44 дня");
+  save();logDate=iso(new Date());scrolledToCur=false;go("path");toast(L("Загружен пример за 44 дня","44 күндік үлгі жүктелді"));
 }
 
 /* ---------- celebration ---------- */
@@ -836,14 +854,14 @@ function celebrate(){
   const lv=levelOf(xpTotal()),B=badgeList(),got=B.filter(b=>b.ok).map(b=>b.id);
   if(!S.seen){S.seen={level:lv,badges:got};save();return}
   const fresh=got.filter(id=>!S.seen.badges.includes(id));
-  if(lv>S.seen.level){const r=rankOf(lv);queue.push({ic:"crown",h:"Уровень "+lv,ar:r[1],t:"Звание: "+r[0]+". Каждый аят приближает к цели."})}
-  for(const id of fresh){const b=B.find(x=>x.id===id);queue.push({ic:b.ic,h:b.t,t:"Новая награда: "+b.d.charAt(0).toLowerCase()+b.d.slice(1)+"."})}
+  if(lv>S.seen.level){const r=rankOf(lv);queue.push({ic:"crown",h:L("Уровень "+lv,lv+"-деңгей"),ar:r[1],t:L("Звание: "+r[0]+". Каждый аят приближает к цели.","Атақ: "+r[0]+". Әр аят мақсатқа жақындатады.")})}
+  for(const id of fresh){const b=B.find(x=>x.id===id);queue.push({ic:b.ic,h:b.t,t:L("Новая награда: ","Жаңа марапат: ")+b.d.charAt(0).toLowerCase()+b.d.slice(1)+"."})}
   if(lv!==S.seen.level||fresh.length){S.seen={level:Math.max(lv,S.seen.level),badges:[...new Set(S.seen.badges.concat(got))]};save()}
   if(queue.length&&!$("#modal").innerHTML)showNext();
 }
 function showNext(){
   const m=queue.shift();if(!m)return;
-  $("#modal").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(m.h)}"><div class="mbox"><div class="medal">${star()}<span class="ic">${IC[m.ic]}</span></div>${m.ar?`<div class="ar">${m.ar}</div>`:""}<h2>${esc(m.h)}</h2><p>${esc(m.t)}</p><button class="b3 gold wide" id="mclose" style="margin-top:10px">Альхамдулиллях</button></div></div>`;
+  $("#modal").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(m.h)}"><div class="mbox"><div class="medal">${star()}<span class="ic">${IC[m.ic]}</span></div>${m.ar?`<div class="ar">${m.ar}</div>`:""}<h2>${esc(m.h)}</h2><p>${esc(m.t)}</p><button class="b3 gold wide" id="mclose" style="margin-top:10px">${L("Альхамдулиллях","Әлхамдулиллаһ")}</button></div></div>`;
   $("#mclose").focus();confetti();
 }
 function confetti(){
