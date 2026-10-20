@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F6B57">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}body{margin:0}</style>
+<title>Хифз за год</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Prata&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working tracker — sticky bar with tabs, a summary strip, then one view at a time; the signature is the 604-page mushaf map. */
+:root{
+  --paper:#F1F5F2; --surface:#FBFDFB; --ink:#12241F; --muted:#5B6E67; --line:#D5DFD9;
+  --accent:#0F6B57; --accent-ink:#FFFFFF; --accent-soft:#DDEDE6;
+  --gold:#A87A22; --gold-soft:#F3E7CB; --weak:#C0533A; --weak-soft:#F6DDD5;
+  --cell:#E2EAE5;
+  --f-display:"Prata","Georgia",serif; --f-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-ar:"Amiri","Noto Naskh Arabic","Times New Roman",serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0B1512; --surface:#121F1B; --ink:#E5EEEA; --muted:#8FA49C; --line:#22362F;
+  --accent:#4CC09E; --accent-ink:#06231B; --accent-soft:#15352C;
+  --gold:#E2B65C; --gold-soft:#3A2F19; --weak:#E58063; --weak-soft:#3E2219;
+  --cell:#1B2C27; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0B1512; --surface:#121F1B; --ink:#E5EEEA; --muted:#8FA49C; --line:#22362F;
+  --accent:#4CC09E; --accent-ink:#06231B; --accent-soft:#15352C;
+  --gold:#E2B65C; --gold-soft:#3A2F19; --weak:#E58063; --weak-soft:#3E2219;
+  --cell:#1B2C27; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ar{font-family:var(--f-ar);direction:rtl}
+.muted{color:var(--muted)}
+.label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding-block:14px 0;border-bottom:1px solid var(--line)}
+.bar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.brand h1{font-size:26px;letter-spacing:.01em}
+.brand .ar{font-size:26px;color:var(--gold);line-height:1}
+.start{display:flex;align-items:center;gap:8px;font-size:13px}
+.start input{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-family:var(--f-mono);font-size:13px}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin-top:12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;padding:10px 14px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--ink)}
+
+/* summary */
+.summary{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding-block:28px 24px}
+.ring{position:relative;width:148px;height:148px}
+.ring svg{display:block;width:100%;height:100%}
+.ring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .big{font-family:var(--f-display);font-size:36px;line-height:1}
+.ring .sub{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{padding:14px 16px;border-left:1px solid var(--line)}
+.stat .v{font-family:var(--f-display);font-size:28px;line-height:1.1;margin-top:4px}
+.stat .n{font-size:13px;color:var(--muted);margin-top:2px}
+.pace{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12.5px;font-weight:600}
+.pace.ok{background:var(--accent-soft);color:var(--accent)}
+.pace.bad{background:var(--weak-soft);color:var(--weak)}
+.pace.wait{background:var(--gold-soft);color:var(--gold)}
+
+.demo{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--gold-soft);color:var(--ink);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;font-size:14px}
+
+/* generic */
+.view{display:grid;gap:18px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+.card h2{font-size:20px;margin-bottom:4px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:8px}
+.btn.danger{color:var(--weak);border-color:var(--weak)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* today */
+.daynav{display:flex;align-items:center;gap:6px}
+.daynav .d{font-family:var(--f-display);font-size:18px;min-width:0}
+.iconbtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:16px}
+.pages{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.pg{display:grid;gap:2px;justify-items:center;min-width:76px;padding:12px 10px;border-radius:12px;border:1.5px dashed var(--gold);background:var(--gold-soft);color:var(--ink)}
+.pg b{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1}
+.pg span{font-size:11.5px;color:var(--muted)}
+.pg.done{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+.pg.done span{color:var(--accent)}
+.hint{font-size:13px;color:var(--muted)}
+.slots{display:grid;gap:8px}
+.slot{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--paper);text-align:left;width:100%}
+.slot .chk{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--muted);display:grid;place-items:center;font-size:13px;color:transparent}
+.slot.on{border-color:var(--accent);background:var(--accent-soft)}
+.slot.on .chk{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.slot .t{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.slot .w{font-weight:600}
+.slot.on .w{text-decoration:line-through;text-decoration-color:var(--accent)}
+.rev{display:grid;gap:10px}
+.rev-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.rev-item:first-child{border-top:0}
+
+.form{display:grid;gap:18px}
+.fs{display:grid;gap:10px}
+.fs h3{font-family:var(--f-body);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.f{display:grid;gap:4px;min-width:0}
+.f label{font-size:12.5px;color:var(--muted)}
+.f input,.f textarea{width:100%;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px}
+.f textarea{resize:vertical;min-height:60px}
+.f.full{grid-column:1/-1}
+.toggle{display:flex;gap:6px}
+.toggle button{flex:1;border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:7px;font-size:14px}
+.toggle button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.rating{display:flex;gap:4px;flex-wrap:wrap}
+.rating button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--paper);font-family:var(--f-mono);font-size:13px}
+.rating button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:var(--surface);font-weight:600}
+
+/* map */
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;background:var(--cell)}
+.legend i.l{background:var(--accent)} .legend i.w{background:var(--weak)} .legend i.n{background:transparent;box-shadow:inset 0 0 0 2px var(--gold)}
+.map{display:grid;gap:6px;margin-top:16px}
+.mrow{display:grid;grid-template-columns:132px minmax(0,1fr) 44px;gap:12px;align-items:center}
+.mname{display:flex;align-items:baseline;gap:8px;font-size:13px;min-width:0}
+.mname b{font-family:var(--f-mono);font-weight:500;width:20px;color:var(--muted)}
+.mname .ar{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cells{display:flex;flex-wrap:wrap;gap:3px}
+.cell{width:22px;height:22px;border-radius:4px;border:0;background:var(--cell);padding:0;font-size:0;transition:transform .12s}
+.cell:hover{transform:scale(1.18)}
+.cell.l{background:var(--accent)}
+.cell.w{background:var(--weak)}
+.cell.n{box-shadow:inset 0 0 0 2px var(--gold)}
+.mpct{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.mrow.full .mpct{color:var(--accent);font-weight:600}
+
+/* juz */
+.juzgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.juz{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:10px}
+.juz-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.juz-n{font-family:var(--f-display);font-size:22px;line-height:1}
+.juz-n small{font-family:var(--f-body);font-size:12px;color:var(--muted);margin-left:4px}
+.juz .ar{font-size:22px;color:var(--gold);line-height:1}
+.juz-range{font-size:13px;color:var(--muted);min-height:2.6em}
+.bar-p{height:6px;border-radius:99px;background:var(--cell);overflow:hidden}
+.bar-p i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.juz-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--cell);color:var(--muted);white-space:nowrap}
+.pill.done{background:var(--accent-soft);color:var(--accent)}
+.pill.prog{background:var(--gold-soft);color:var(--gold)}
+.pill.now{background:var(--gold);color:var(--surface)}
+.counter{display:flex;align-items:center;gap:6px}
+.counter button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--paper);line-height:1}
+.counter .mono{min-width:20px;text-align:center}
+
+/* plan */
+.plan{display:grid}
+.prow{display:grid;grid-template-columns:110px minmax(0,1fr) 170px;gap:18px;padding:16px 0;border-top:1px solid var(--line);align-items:center}
+.prow:first-child{border-top:0}
+.prow.cur{background:linear-gradient(90deg,var(--gold-soft),transparent 70%);margin-inline:-20px;padding-inline:20px}
+.pm{font-family:var(--f-display);font-size:18px}
+.pd{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.pmain{min-width:0}
+.pmain .s{font-weight:600}
+.pmain .r{font-size:13px;color:var(--muted)}
+.pright{display:grid;gap:6px}
+.pright .row{justify-content:space-between}
+
+/* week */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:13.5px}
+th,td{padding:10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td:first-child{font-weight:600;white-space:nowrap}
+td:first-child span{display:block;font-family:var(--f-mono);font-weight:400;font-size:12px;color:var(--muted)}
+.today-col{background:var(--accent-soft)}
+th.today-col{color:var(--accent)}
+
+/* log */
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:3px;overflow-x:auto;padding-bottom:4px}
+.heat i{width:14px;height:14px;border-radius:3px;background:var(--cell)}
+.heat i.a1{background:color-mix(in srgb,var(--accent) 40%,var(--cell))}
+.heat i.a2{background:color-mix(in srgb,var(--accent) 70%,var(--cell))}
+.heat i.a3{background:var(--accent)}
+.heat i.t{box-shadow:inset 0 0 0 2px var(--gold)}
+.entries{display:grid}
+.entry{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:14px;padding:12px 0;border-top:1px solid var(--line);align-items:baseline}
+.entry:first-child{border-top:0}
+.entry .dt{font-family:var(--f-mono);font-size:13px}
+.entry .tx{font-size:14px;min-width:0;overflow-wrap:anywhere}
+.backup textarea{width:100%;min-height:90px;font-family:var(--f-mono);font-size:12px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.empty{padding:24px;text-align:center;color:var(--muted);font-size:14px}
+
+@media (max-width:860px){
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .prow{grid-template-columns:minmax(0,1fr);gap:8px}
+  .prow.cur{margin-inline:-20px}
+}
+@media (max-width:560px){
+  .summary{grid-template-columns:minmax(0,1fr);justify-items:center;gap:18px}
+  .stats{width:100%}
+  .stat{border-left:0;border-top:1px solid var(--line);padding:12px 4px}
+  .mrow{grid-template-columns:minmax(0,1fr) 40px;gap:6px 10px}
+  .mrow .cells{grid-column:1/-1;grid-row:2}
+  .cell{width:calc((100% - 57px)/20);height:auto;aspect-ratio:1;min-width:10px;max-width:22px}
+  .fields{grid-template-columns:minmax(0,1fr)}
+  .entry{grid-template-columns:minmax(0,1fr) auto}
+  .entry .tx{grid-column:1/-1;grid-row:2}
+  .brand h1{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <div class="bar-row">
+      <div class="brand"><h1>Хифз за год</h1><span class="ar" aria-hidden="true">حِفْظ</span></div>
+      <label class="start" for="startDate"><span class="muted">Старт</span><input type="date" id="startDate"></label>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Разделы">
+      <button class="tab" role="tab" data-v="today">Сегодня</button>
+      <button class="tab" role="tab" data-v="map">Карта мусхафа</button>
+      <button class="tab" role="tab" data-v="juz">30 джузов</button>
+      <button class="tab" role="tab" data-v="plan">План года</button>
+      <button class="tab" role="tab" data-v="week">Распорядок</button>
+      <button class="tab" role="tab" data-v="log">Журнал</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="summary" id="summary"></section>
+  <div id="demoBar"></div>
+  <section id="view"></section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const KEY="hifz-tracker-v1", TOTAL=604;
+const JUZ_START=[1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
+const JUZ_AR=["الم","سيقول","تلك الرسل","لن تنالوا","والمحصنات","لا يحب الله","وإذا سمعوا","ولو أننا","قال الملأ","واعلموا","يعتذرون","وما من دابة","وما أبرئ","ربما","سبحان الذي","قال ألم","اقترب","قد أفلح","وقال الذين","أمن خلق","اتل ما أوحي","ومن يقنت","وما لي","فمن أظلم","إليه يرد","حم","قال فما خطبكم","قد سمع الله","تبارك الذي","عم"];
+const JUZ_RU=["Аль-Фатиха 1 – Аль-Бакара 141","Аль-Бакара 142–252","Аль-Бакара 253 – Аль Имран 92","Аль Имран 93 – Ан-Ниса 23","Ан-Ниса 24–147","Ан-Ниса 148 – Аль-Маида 81","Аль-Маида 82 – Аль-Анам 110","Аль-Анам 111 – Аль-Араф 87","Аль-Араф 88 – Аль-Анфаль 40","Аль-Анфаль 41 – Ат-Тауба 92","Ат-Тауба 93 – Худ 5","Худ 6 – Юсуф 52","Юсуф 53 – Ибрахим 52","Аль-Хиджр 1 – Ан-Нахль 128","Аль-Исра 1 – Аль-Кахф 74","Аль-Кахф 75 – Та-Ха 135","Аль-Анбия 1 – Аль-Хадж 78","Аль-Муминун 1 – Аль-Фуркан 20","Аль-Фуркан 21 – Ан-Намль 55","Ан-Намль 56 – Аль-Анкабут 45","Аль-Анкабут 46 – Аль-Ахзаб 30","Аль-Ахзаб 31 – Ясин 27","Ясин 28 – Аз-Зумар 31","Аз-Зумар 32 – Фуссылат 46","Фуссылат 47 – Аль-Джасия 37","Аль-Ахкаф 1 – Аз-Зарият 30","Аз-Зарият 31 – Аль-Хадид 29","Аль-Муджадала 1 – Ат-Тахрим 12","Аль-Мульк 1 – Аль-Мурсалят 50","Ан-Наба 1 – Ан-Нас 6 (37 сур)"];
+const PLAN=[
+ ["Джуз 1–2",1,40,"Аль-Фатиха, Аль-Бакара (1–141)","Повтор джуза 1 ежедневно"],
+ ["Джуз 3–5",41,100,"Аль-Бакара (142–286), Аль Имран","Повтор джузов 1–2 каждый день"],
+ ["Джуз 6–8",101,160,"Ан-Ниса, Аль-Маида","Повтор джузов 1–5 циклично"],
+ ["Джуз 9–11",161,220,"Аль-Анам, Аль-Араф","Повтор джузов 1–8 циклично"],
+ ["Джуз 12–14",221,280,"Ат-Тауба, Юнус, Худ","Повтор джузов 1–11 циклично"],
+ ["Джуз 15–17",281,340,"Аль-Исра, Аль-Кахф, Марьям","Повтор джузов 1–14 · половина Корана"],
+ ["Джуз 18–20",341,400,"Та-Ха, Аль-Анбия, Аль-Хадж","Повтор джузов 1–17 циклично"],
+ ["Джуз 21–23",401,460,"Аль-Муминун, Ан-Нур, Аль-Фуркан","Повтор джузов 1–20 циклично"],
+ ["Джуз 24–25",461,510,"Аль-Касас, Аль-Анкабут, Ар-Рум","Повтор джузов 1–23 циклично"],
+ ["Джуз 26–27",511,555,"Ясин, Ас-Саффат, Сад, Аз-Зумар","Повтор джузов 1–25 циклично"],
+ ["Джуз 28–29",556,590,"Аль-Муджадала → Аль-Мурсалят","Повтор всего Корана 1–27"],
+ ["Джуз 30",591,604,"Ан-Наба → Ан-Нас (37 сур)","Полный повтор всего Корана"]
+];
+const SLOTS=[["После Фаджра","05:00–06:30"],["Утро","08:00–09:00"],["День","13:00–14:00"],["После Асра","16:00–17:30"],["Вечер","20:00–21:00"]];
+const WEEK={ // columns: Пн–Чт, Пт, Сб/Вс
+ wd:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Прослушивание нового урока","Старые джузы · 2–3 стр.","Финальный повтор дня"],
+ fr:["Новый материал · ½–1 стр.","Повтор последних 7 дней","Джума + повторение","Старые джузы · 2–3 стр.","Финальный повтор дня"],
+ we:["Повтор недели + новое","Чтение устазу (если есть)","Отдых / лёгкое повторение","Старые джузы · 3–4 стр.","Полный повтор недели"]
+};
+const DOW=["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+const MON=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+
+/* ---------- state ---------- */
+function blank(){return {start:iso(new Date()),pages:{},pageDate:{},reviews:{},days:{},demo:false}}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
+if(!S||typeof S!=="object")S=blank();
+for(const k of ["pages","pageDate","reviews","days"]) if(!S[k]||typeof S[k]!=="object") S[k]={};
+if(!S.start)S.start=iso(new Date());
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+let view="today", logDate=iso(new Date());
+const h=location.hash.slice(1); if(["today","map","juz","plan","week","log"].includes(h))view=h;
+
+/* ---------- dates ---------- */
+function iso(d){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())}
+function parse(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function addMonths(d,n){const x=new Date(d);const day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+n);const last=new Date(x.getFullYear(),x.getMonth()+1,0).getDate();x.setDate(Math.min(day,last));return x}
+function diff(a,b){return Math.round((parse(iso(b))-parse(iso(a)))/864e5)}
+function fmt(d){return d.getDate()+" "+MON[d.getMonth()]}
+function fmtY(d){return d.getDate()+" "+MON[d.getMonth()]+" "+d.getFullYear()}
+const today=()=>parse(iso(new Date()));
+
+/* ---------- derived ---------- */
+function juzOf(p){let j=0;for(let i=0;i<30;i++)if(p>=JUZ_START[i])j=i;return j}
+function juzRange(j){return [JUZ_START[j], j<29?JUZ_START[j+1]-1:TOTAL]}
+function learned(){let n=0;for(const k in S.pages)if(S.pages[k]>0)n++;return n}
+function weakCount(){let n=0;for(const k in S.pages)if(S.pages[k]===2)n++;return n}
+function nextPage(){for(let p=1;p<=TOTAL;p++)if(!S.pages[p])return p;return null}
+function monthStart(i){return addMonths(parse(S.start),i)}
+function monthIdx(d){const s=parse(S.start);if(d<s)return -1;for(let i=0;i<12;i++)if(d<monthStart(i+1))return i;return 12}
+function monthDays(i){return diff(monthStart(i),monthStart(i+1))}
+function rate(i){i=Math.max(0,Math.min(11,i));const m=PLAN[i];return Math.max(1,Math.ceil((m[2]-m[1]+1)/monthDays(i)))}
+function expected(d){const i=monthIdx(d);if(i<0)return 0;if(i>11)return TOTAL;const m=PLAN[i];const el=diff(monthStart(i),d)+1;return m[1]-1+Math.round((m[2]-m[1]+1)*el/monthDays(i))}
+function juzStat(j){const [a,b]=juzRange(j);let n=0,w=0,first=null,last=null;for(let p=a;p<=b;p++){if(S.pages[p]){n++;if(S.pages[p]===2)w++;const d=S.pageDate[p];if(d){if(!first||d<first)first=d;if(!last||d>last)last=d}}}return {n,w,total:b-a+1,first,last}}
+function juzDone(){let c=0;for(let j=0;j<30;j++){const s=juzStat(j);if(s.n===s.total)c++}return c}
+function dayActive(ds){const d=S.days[ds];if(d&&d.slots&&d.slots.some(Boolean))return true;for(const k in S.pageDate)if(S.pageDate[k]===ds&&S.pages[k])return true;return false}
+function pagesOn(ds){let n=0;for(const k in S.pageDate)if(S.pageDate[k]===ds&&S.pages[k])n++;return n}
+function streak(){let d=today(),n=0;if(!dayActive(iso(d)))d=addDays(d,-1);while(dayActive(iso(d))){n++;d=addDays(d,-1)}return n}
+function weekKey(d){const w=d.getDay();return w===0||w===6?"we":w===5?"fr":"wd"}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1800)}
+function plural(n,a,b,c){const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<10||h>=20)?b:c}
+function setPage(p,state,date){if(state){S.pages[p]=state;if(!S.pageDate[p])S.pageDate[p]=date||iso(new Date())}else{delete S.pages[p];delete S.pageDate[p]}save()}
+
+/* ---------- summary ---------- */
+function renderSummary(){
+  const L=learned(),pct=L/TOTAL,R=64,C=2*Math.PI*R;
+  const exp=expected(today()),delta=L-exp,mi=monthIdx(today());
+  let pace;
+  if(mi<0)pace=`<span class="pace wait">Старт ${fmt(parse(S.start))}</span>`;
+  else if(delta>=0)pace=`<span class="pace ok">${delta?"Впереди на "+delta+" "+plural(delta,"стр.","стр.","стр."):"Точно по плану"}</span>`;
+  else pace=`<span class="pace bad">Отставание ${-delta} стр.</span>`;
+  const day=Math.max(0,diff(parse(S.start),today())+1);
+  const st=streak();
+  $("#summary").innerHTML=`
+   <div class="ring" aria-label="Выучено ${L} из ${TOTAL} страниц">
+    <svg viewBox="0 0 148 148" aria-hidden="true">
+      <circle cx="74" cy="74" r="${R}" fill="none" stroke="var(--cell)" stroke-width="10"/>
+      <circle cx="74" cy="74" r="${R}" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round"
+        stroke-dasharray="${(C*pct).toFixed(2)} ${C.toFixed(2)}" transform="rotate(-90 74 74)"/>
+      <circle cx="74" cy="74" r="${R}" fill="none" stroke="var(--gold)" stroke-width="3"
+        stroke-dasharray="1.5 ${C.toFixed(2)}" stroke-dashoffset="${(-C*exp/TOTAL).toFixed(2)}" transform="rotate(-90 74 74)"/>
+    </svg>
+    <div class="c"><div class="big">${(pct*100).toFixed(pct>0&&pct<.1?1:0)}%</div><div class="sub mono">${L} / ${TOTAL} стр.</div></div>
+   </div>
+   <div style="display:grid;gap:14px;min-width:0;width:100%">
+    <div class="row">${pace}<span class="hint">${mi>=0&&mi<12?"Месяц "+(mi+1)+" из 12 · день "+day+" из 365":mi>=12?"Год плана завершён":""}</span></div>
+    <div class="stats">
+      <div class="stat"><div class="label">Джузов выучено</div><div class="v">${juzDone()}<span class="muted" style="font-size:16px"> / 30</span></div><div class="n">${weakCount()} ${plural(weakCount(),"сложная страница","сложные страницы","сложных страниц")}</div></div>
+      <div class="stat"><div class="label">Серия</div><div class="v">${st}</div><div class="n">${plural(st,"день","дня","дней")} подряд</div></div>
+      <div class="stat"><div class="label">По плану к сегодня</div><div class="v mono" style="font-family:var(--f-display)">${exp}</div><div class="n">страниц</div></div>
+      <div class="stat"><div class="label">Норма месяца</div><div class="v">${rate(mi)}</div><div class="n">${plural(rate(mi),"страница","страницы","страниц")} в день</div></div>
+    </div>
+   </div>`;
+}
+
+function renderDemoBar(){
+  const L=learned()+Object.keys(S.days).length;
+  const el=$("#demoBar");
+  if(S.demo) el.innerHTML=`<div class="demo"><span><b>Это пример данных.</b> Посмотрите, как выглядит трекер в работе, затем очистите и начните свой хифз.</span><button class="btn sm" id="clearDemo">Очистить пример</button></div>`;
+  else if(!L) el.innerHTML=`<div class="demo"><span>Отмечайте каждую выученную страницу — прогресс, серия и карта мусхафа обновятся сами. Данные хранятся в этом браузере.</span><button class="btn sm" id="loadDemo">Показать пример</button></div>`;
+  else el.innerHTML="";
+}
+
+/* ---------- views ---------- */
+function vToday(){
+  const d=parse(logDate),ds=logDate,isToday=ds===iso(new Date());
+  const rec=S.days[ds]||{};const slots=rec.slots||[];
+  const wk=WEEK[weekKey(d)];
+  const mi=Math.max(0,Math.min(11,monthIdx(d)));
+  const r=rate(monthIdx(d));
+  // today's new pages: those learned on this date + next unlearned up to rate
+  const doneHere=Object.keys(S.pageDate).filter(k=>S.pageDate[k]===ds&&S.pages[k]).map(Number).sort((a,b)=>a-b);
+  const chips=[...doneHere];let need=Math.max(1,r-doneHere.length);
+  for(let p=nextPage()||TOTAL+1;p<=TOTAL&&need>0;p++)if(!S.pages[p]){chips.push(p);need--}
+  const pagesHtml=chips.map(n=>{const done=!!S.pages[n];return `<button class="pg${done?" done":""}" data-pg="${n}" aria-pressed="${done}"><span>стр.</span><b>${n}</b><span>${done?"✓ выучено":"Джуз "+(juzOf(n)+1)}</span></button>`}).join("");
+  // review suggestions
+  const wk7=[];for(const k in S.pageDate){if(S.pages[k]&&diff(parse(S.pageDate[k]),d)>=0&&diff(parse(S.pageDate[k]),d)<7)wk7.push(+k)}
+  wk7.sort((a,b)=>a-b);
+  const learnedJuz=[];for(let j=0;j<30;j++){const s=juzStat(j);if(s.n===s.total)learnedJuz.push(j)}
+  learnedJuz.sort((a,b)=>(S.reviews[a]||0)-(S.reviews[b]||0)||a-b);
+  const weak=Object.keys(S.pages).filter(k=>S.pages[k]===2).map(Number).sort((a,b)=>a-b);
+  const F=rec.f||{};
+  const fld=(id,lab,type)=>`<div class="f"><label for="f_${id}">${lab}</label><input id="f_${id}" data-f="${id}" ${type?'type="'+type+'" inputmode="numeric"':""} value="${esc(F[id])}"></div>`;
+  const ta=(id,lab)=>`<div class="f full"><label for="f_${id}">${lab}</label><textarea id="f_${id}" data-f="${id}">${esc(F[id])}</textarea></div>`;
+  const yn=(id,lab)=>`<div class="f"><label>${lab}</label><div class="toggle" data-yn="${id}"><button aria-pressed="${F[id]===true}" data-v="1">Да</button><button aria-pressed="${F[id]===false}" data-v="0">Нет</button></div></div>`;
+  return `
+  <div class="card" style="padding-block:14px">
+    <div class="row" style="justify-content:space-between">
+      <div class="daynav"><button class="iconbtn" data-day="-1" aria-label="Предыдущий день">‹</button>
+        <div class="d">${isToday?"Сегодня, ":""}${DOW[d.getDay()].toLowerCase()} · ${fmtY(d)}</div>
+        <button class="iconbtn" data-day="1" aria-label="Следующий день">›</button></div>
+      ${isToday?"":`<button class="btn sm ghost" data-day="0">К сегодняшнему дню</button>`}
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="view">
+      <div class="card">
+        <div class="card-head"><div><h2>Новые страницы</h2><div class="hint">Месяц ${mi+1}: ${PLAN[mi][0]}, стр. ${PLAN[mi][1]}–${PLAN[mi][2]} · норма ${r} ${plural(r,"страница","страницы","страниц")} в день</div></div></div>
+        <div class="pages">${pagesHtml||'<div class="empty">Все 604 страницы выучены. Машааллах!</div>'}</div>
+        <div class="hint">Нажмите на страницу, когда выучите её наизусть. Повторное нажатие снимает отметку.</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Распорядок дня</h2><div class="hint">${DOW[d.getDay()]} · ${slots.filter(Boolean).length} из 5 выполнено</div></div></div>
+        <div class="slots">${SLOTS.map((s,i)=>`<button class="slot${slots[i]?" on":""}" data-slot="${i}" aria-pressed="${!!slots[i]}"><span class="chk">✓</span><span><span class="t">${s[0]} · ${s[1]}</span><br><span class="w">${wk[i]}</span></span></button>`).join("")}</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Что повторить</h2><div class="hint">Подсказки на основе ваших отметок</div></div></div>
+        <div class="rev">
+          <div class="rev-item"><div><div class="label">Последние 7 дней</div><div>${wk7.length?"Стр. "+ranges(wk7):"Пока нет новых страниц за неделю"}</div></div></div>
+          <div class="rev-item"><div><div class="label">Старые джузы</div><div>${learnedJuz.length?learnedJuz.slice(0,2).map(j=>"Джуз "+(j+1)+" <span class='muted'>· повторён "+(S.reviews[j]||0)+" раз</span>").join("<br>"):"Появятся, когда выучите первый джуз целиком"}</div></div>
+            ${learnedJuz.length?`<button class="btn sm" data-rev="${learnedJuz[0]}">+1 повтор джуза ${learnedJuz[0]+1}</button>`:""}</div>
+          <div class="rev-item"><div><div class="label">Сложные места</div><div>${weak.length?"Стр. "+ranges(weak):"Отмечайте сложные страницы на карте мусхафа"}</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h2>Лист хафиза</h2><div class="hint">Сохраняется автоматически</div></div></div>
+      <form class="form" id="dayForm" onsubmit="return false">
+        <div class="fs"><h3>Утро · новый материал</h3><div class="fields">
+          ${fld("page","Джуз / страница")}${fld("ayat","Аяты: начало — конец")}${fld("reps","Повторений нового","number")}${fld("mins","Время заучивания, мин","number")}
+        </div></div>
+        <div class="fs"><h3>День · повтор недельного</h3><div class="fields">
+          ${fld("revPages","Страницы повторения")}${fld("revTimes","Сколько раз прочитано","number")}${ta("hard","Сложные места")}
+        </div></div>
+        <div class="fs"><h3>Вечер · старые джузы</h3><div class="fields">
+          ${fld("oldJuz","Джузы на повторение")}${fld("oldPages","Страниц пройдено","number")}${yn("audio","Слушал аудио")}${yn("ustaz","Читал устазу")}
+        </div></div>
+        <div class="fs"><h3>Оценка дня</h3>
+          <div class="f"><label>Самооценка, 1–10</label><div class="rating" id="rating">${Array.from({length:10},(_,i)=>`<button type="button" data-rt="${i+1}" aria-pressed="${F.rating===i+1}">${i+1}</button>`).join("")}</div></div>
+          <div class="fields">${ta("difficult","Что далось трудно")}${ta("dua","Дуа / заметки")}</div>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+function ranges(arr){const out=[];let a=arr[0],b=arr[0];for(let i=1;i<=arr.length;i++){if(arr[i]===b+1){b=arr[i];continue}out.push(a===b?a:a+"–"+b);a=b=arr[i]}return out.join(", ")}
+
+function vMap(){
+  const np=nextPage();
+  let rows="";
+  for(let j=0;j<30;j++){const [a,b]=juzRange(j);const s=juzStat(j);let cells="";
+    for(let p=a;p<=b;p++){const st=S.pages[p];cells+=`<button class="cell${st===1?" l":st===2?" w":""}${p===np?" n":""}" data-cell="${p}" title="Стр. ${p}" aria-label="Страница ${p}${st===1?", выучена":st===2?", сложная":""}"></button>`}
+    rows+=`<div class="mrow${s.n===s.total?" full":""}"><div class="mname"><b>${j+1}</b><span class="ar">${JUZ_AR[j]}</span></div><div class="cells">${cells}</div><div class="mpct">${s.n}/${s.total}</div></div>`}
+  return `<div class="card"><div class="card-head"><div><h2>Карта мусхафа</h2><div class="hint">604 страницы мадинского мусхафа, по строке на джуз. Нажатие: выучено → сложное место → снять отметку.</div></div>
+    <div class="legend"><span><i class="l"></i>Выучено</span><span><i class="w"></i>Сложное место</span><span><i class="n"></i>Следующая</span><span><i></i>Впереди</span></div></div>
+    <div class="map">${rows}</div></div>`;
+}
+
+function vJuz(){
+  const np=nextPage(),cur=np?juzOf(np):-1;
+  return `<div class="juzgrid">${Array.from({length:30},(_,j)=>{const s=juzStat(j);const [a,b]=juzRange(j);
+    const done=s.n===s.total;const pill=done?'<span class="pill done">Выучен</span>':j===cur?'<span class="pill now">Сейчас</span>':s.n?'<span class="pill prog">В процессе</span>':'<span class="pill">Не начат</span>';
+    const dates=s.first?`${fmt(parse(s.first))}${done&&s.last?" → "+fmt(parse(s.last)):" → …"}`:`стр. ${a}–${b}`;
+    return `<article class="juz"><div class="juz-top"><div class="juz-n">${j+1}<small>джуз</small></div><span class="ar">${JUZ_AR[j]}</span></div>
+      <div class="juz-range">${JUZ_RU[j]}</div>
+      <div class="bar-p" role="progressbar" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.n}"><i style="width:${s.n/s.total*100}%"></i></div>
+      <div class="juz-foot"><span class="mono muted">${s.n}/${s.total} · ${dates}</span>${pill}</div>
+      <div class="juz-foot"><span class="muted">Повторений</span><span class="counter"><button data-rv="${j}" data-d="-1" aria-label="Минус повтор">−</button><span class="mono">${S.reviews[j]||0}</span><button data-rv="${j}" data-d="1" aria-label="Плюс повтор">+</button></span></div>
+    </article>`}).join("")}</div>`;
+}
+
+function vPlan(){
+  const mi=monthIdx(today());
+  return `<div class="card"><div class="card-head"><div><h2>План на 12 месяцев</h2><div class="hint">Даты считаются от дня старта. Прогресс месяца — по отмеченным страницам.</div></div></div>
+  <div class="plan">${PLAN.map((m,i)=>{let n=0;for(let p=m[1];p<=m[2];p++)if(S.pages[p])n++;const tot=m[2]-m[1]+1;
+    const s=monthStart(i),e=addDays(monthStart(i+1),-1);
+    const pill=n===tot?'<span class="pill done">Выполнено</span>':i===mi?'<span class="pill now">Идёт сейчас</span>':n?'<span class="pill prog">В процессе</span>':i<mi?'<span class="pill" style="color:var(--weak)">Не закрыт</span>':'<span class="pill">Впереди</span>';
+    return `<div class="prow${i===mi?" cur":""}"><div><div class="pm">Месяц ${i+1}</div><div class="pd">${fmt(s)} – ${fmt(e)}</div></div>
+      <div class="pmain"><div class="s">${m[0]} · <span class="mono">стр. ${m[1]}–${m[2]}</span></div><div>${m[3]}</div><div class="r">${m[4]}</div></div>
+      <div class="pright"><div class="row"><span class="mono muted">${n}/${tot} стр.</span>${pill}</div><div class="bar-p"><i style="width:${n/tot*100}%"></i></div><div class="hint">≈ ${rate(i)} стр. в день</div></div></div>`}).join("")}
+    <div class="prow"><div><div class="pm">Итого</div></div><div class="pmain"><div class="s">114 сур · 6236 аятов · 604 страницы</div><div class="r">После последней страницы — хафиз, ин шаа Аллах.</div></div><div></div></div>
+  </div></div>`;
+}
+
+function vWeek(){
+  const w=new Date().getDay();const col=w===0||w===6?5:w-1;
+  const heads=["Понедельник","Вторник","Среда","Четверг","Пятница","Сб / Вс"];
+  const cell=(si,ci)=>(ci===5?WEEK.we:ci===4?WEEK.fr:WEEK.wd)[si];
+  return `<div class="card"><div class="card-head"><div><h2>Недельный распорядок</h2><div class="hint">Пять подходов в день, привязанных к намазам. Сегодняшний столбец выделен.</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>Время</th>${heads.map((x,i)=>`<th class="${i===col?"today-col":""}">${x}</th>`).join("")}</tr></thead>
+  <tbody>${SLOTS.map((s,si)=>`<tr><td>${s[0]}<span>${s[1]}</span></td>${heads.map((_,ci)=>`<td class="${ci===col?"today-col":""}">${cell(si,ci)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+}
+
+function vLog(){
+  const t=today();const startW=addDays(t,-(7*25)-((t.getDay()+6)%7));let cells="";
+  for(let d=new Date(startW);d<=addDays(t,6-((t.getDay()+6)%7));d=addDays(d,1)){
+    const ds=iso(d);if(d>t){cells+=`<i style="visibility:hidden"></i>`;continue}
+    const pg=pagesOn(ds),sl=(S.days[ds]&&S.days[ds].slots||[]).filter(Boolean).length;
+    const sc=pg>=2||sl>=4?3:pg>=1||sl>=2?2:sl>=1?1:0;
+    cells+=`<i class="${sc?"a"+sc:""}${ds===iso(t)?" t":""}" title="${fmtY(d)}: ${pg} стр., ${sl}/5 подходов"></i>`}
+  const days=Object.keys(S.days).concat(Object.values(S.pageDate)).filter((v,i,a)=>a.indexOf(v)===i).sort().reverse();
+  const ent=days.map(ds=>{const r=S.days[ds]||{},f=r.f||{};const pg=pagesOn(ds),sl=(r.slots||[]).filter(Boolean).length;
+    const note=[f.page&&("Новое: "+f.page),f.difficult&&("Трудно: "+f.difficult),f.dua].filter(Boolean).join(" · ");
+    return `<div class="entry"><button class="btn sm ghost dt" data-open="${ds}">${fmtY(parse(ds))}</button><div class="tx">${esc(note)||'<span class="muted">Без заметок</span>'}</div><div class="mono muted" style="font-size:12.5px;white-space:nowrap">${pg} стр. · ${sl}/5${f.rating?" · ★"+f.rating:""}</div></div>`}).join("");
+  return `<div class="card"><div class="card-head"><div><h2>Последние полгода</h2><div class="hint">Яркость клетки — сколько сделано за день: новые страницы и подходы распорядка.</div></div></div><div class="heat">${cells}</div></div>
+  <div class="card"><div class="card-head"><div><h2>Записи по дням</h2><div class="hint">Нажмите на дату, чтобы открыть лист хафиза за этот день.</div></div></div><div class="entries">${ent||'<div class="empty">Записей пока нет. Заполните лист хафиза во вкладке «Сегодня».</div>'}</div></div>
+  <div class="card backup"><div class="card-head"><div><h2>Резервная копия</h2><div class="hint">Скопируйте код и сохраните в заметках. На другом устройстве вставьте его и нажмите «Восстановить».</div></div></div>
+    <div class="form"><textarea id="bk" aria-label="Код резервной копии" placeholder="Сюда вставляется код резервной копии"></textarea>
+    <div class="row"><button class="btn primary" id="bkCopy">Скопировать мои данные</button><button class="btn" id="bkLoad">Восстановить из кода</button><span style="flex:1"></span><span id="resetZone"><button class="btn danger" id="reset">Сбросить всё</button></span></div></div></div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  $("#startDate").value=S.start;
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===view));
+  renderSummary();renderDemoBar();
+  const V={today:vToday,map:vMap,juz:vJuz,plan:vPlan,week:vWeek,log:vLog}[view];
+  $("#view").className="view";$("#view").innerHTML=V();
+}
+function day(){if(!S.days[logDate])S.days[logDate]={};return S.days[logDate]}
+
+/* ---------- events ---------- */
+document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;view=b.dataset.v;try{history.replaceState(null,"","#"+view)}catch(_){}render()});
+$("#startDate").addEventListener("change",e=>{if(e.target.value){S.start=e.target.value;save();render();toast("Дата старта сохранена")}});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.id==="loadDemo")return loadDemo();
+  if(t.id==="clearDemo"){S=blank();save();render();return toast("Пример очищен. Удачи в хифзе!")}
+  if(t.dataset.day!==undefined){const n=+t.dataset.day;logDate=n?iso(addDays(parse(logDate),n)):iso(new Date());return render()}
+  if(t.dataset.pg){const p=+t.dataset.pg;if(S.pages[p]){setPage(p,0)}else{setPage(p,1,logDate);toast("Стр. "+p+" выучена. Машааллах!")}return render()}
+  if(t.dataset.slot!==undefined){const d=day();d.slots=d.slots||[];d.slots[+t.dataset.slot]=!d.slots[+t.dataset.slot];save();return render()}
+  if(t.dataset.cell){const p=+t.dataset.cell,st=S.pages[p]||0;const nx=(st+1)%3;if(nx===0)setPage(p,0);else{S.pages[p]=nx;if(!S.pageDate[p])S.pageDate[p]=iso(new Date());save()}return render()}
+  if(t.dataset.rv!==undefined){const j=+t.dataset.rv;S.reviews[j]=Math.max(0,(S.reviews[j]||0)+(+t.dataset.d));save();return render()}
+  if(t.dataset.rev!==undefined){const j=+t.dataset.rev;S.reviews[j]=(S.reviews[j]||0)+1;save();render();return toast("Повтор джуза "+(j+1)+" засчитан")}
+  if(t.dataset.rt){const d=day();d.f=d.f||{};const v=+t.dataset.rt;d.f.rating=d.f.rating===v?undefined:v;save();document.querySelectorAll("[data-rt]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.rt===d.f.rating));return}
+  const yn=t.closest("[data-yn]");if(yn){const d=day();d.f=d.f||{};const v=t.dataset.v==="1";d.f[yn.dataset.yn]=d.f[yn.dataset.yn]===v?undefined:v;save();yn.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.v==="1")===d.f[yn.dataset.yn]&&d.f[yn.dataset.yn]!==undefined));return}
+  if(t.dataset.open){logDate=t.dataset.open;view="today";try{history.replaceState(null,"","#today")}catch(_){}render();return window.scrollTo({top:0})}
+  if(t.id==="bkCopy"){const txt=JSON.stringify(S);const ta=$("#bk");ta.value=txt;
+    const ok=()=>toast("Скопировано. Сохраните код в заметках"),fb=()=>{ta.focus();ta.select();toast("Выделено — скопируйте вручную")};
+    try{navigator.clipboard.writeText(txt).then(ok,fb)}catch(_){fb()}return}
+  if(t.id==="bkLoad"){try{const o=JSON.parse($("#bk").value);if(!o||typeof o.pages!=="object")throw 0;S=Object.assign(blank(),o);save();render();toast("Данные восстановлены")}catch(_){toast("Код не распознан. Вставьте его целиком")}return}
+  if(t.id==="reset"){$("#resetZone").innerHTML=`<span class="row"><span class="hint">Удалить все отметки?</span><button class="btn danger" id="resetYes">Да, удалить</button><button class="btn" id="resetNo">Отмена</button></span>`;return}
+  if(t.id==="resetNo")return render();
+  if(t.id==="resetYes"){S=blank();save();render();return toast("Все данные удалены")}
+});
+document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.f;if(!k)return;const d=day();d.f=d.f||{};d.f[k]=e.target.value;save()});
+document.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.f&&view==="today")renderSummary()});
+
+function loadDemo(){
+  const t=today(),start=addDays(t,-44);S=blank();S.demo=true;S.start=iso(start);
+  let p=1;
+  for(let i=0;i<44;i++){const d=iso(addDays(start,i));if(i%9===6)continue;const n=i<14?1:2;for(let k=0;k<n&&p<=72;k++){S.pages[p]=1;S.pageDate[p]=d;p++}
+    S.days[d]={slots:[true,true,i%3!==0,true,i%4!==1],f:i%5===0?{page:"Джуз "+(juzOf(p-1)+1)+" / стр. "+(p-1),reps:"20",mins:"45",rating:7+(i%3),difficult:i%10===0?"Переход между аятами 8 и 9":"",audio:true}:{}}}
+  [14,15,33,41].forEach(x=>{if(S.pages[x])S.pages[x]=2});
+  S.reviews={0:9,1:3};
+  save();logDate=iso(new Date());render();toast("Загружен пример за 44 дня");
+}
+
+render();
+})();
+</script>
+</body>
+</html>
