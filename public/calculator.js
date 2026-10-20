@@ -90,6 +90,6 @@ if(form) {
  byId('calc-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(summary);byId('calc-status').textContent='Расчёт скопирован.'}catch{byId('calc-status').textContent='Копирование недоступно. Вы можете выделить результат вручную.'}});
  byId('calc-request').addEventListener('click',()=>{
   const message=document.querySelector('#lead-form textarea[name="message"]');
-  if(message){message.value=summary;document.querySelector('#lead-form select[name="service"]').value=form.elements.task.value==='restoration'?'Восстановление учёта':'Бухгалтерское сопровождение';document.getElementById('contact').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});document.querySelector('#lead-form input[name="name"]').focus({preventScroll:true})}
+  if(message){message.value=`Хочу получить скидку.\n${summary}`;document.querySelector('#lead-form select[name="service"]').value=form.elements.task.value==='restoration'?'Восстановление учёта':'Бухгалтерское сопровождение';document.getElementById('contact').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});document.querySelector('#lead-form input[name="name"]').focus({preventScroll:true})}
  });
 }

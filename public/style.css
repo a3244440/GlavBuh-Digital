@@ -326,6 +326,16 @@ h3{font:500 20px/1.2 var(--display);letter-spacing:-.03em;margin:0}
 .sum .notes h2{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;color:var(--ink)}
 .sum .notes ul{margin:0;padding-left:16px;display:grid;gap:6px}
 .sum .cta{margin-top:18px}
+/* «Получить скидку»: блик пробегает по кнопке, вокруг расходится волна, значок % покачивается */
+.discount-btn{position:relative;overflow:hidden;isolation:isolate;gap:8px}
+.discount-btn .pct{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#fff;color:var(--red);font:700 12px/1 var(--display)}
+.discount-btn:not(:disabled){animation:ring 3.2s var(--ease-out) 1.2s infinite}
+.discount-btn:not(:disabled)::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.42) 50%,transparent 65%);transform:translateX(-120%);animation:sheen 3.2s var(--ease-io) 1.2s infinite}
+.discount-btn:not(:disabled) .pct{animation:wiggle 3.2s var(--ease-out) 1.2s infinite}
+@keyframes sheen{0%{transform:translateX(-120%)}35%,100%{transform:translateX(120%)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(225,35,43,.45)}40%,100%{box-shadow:0 0 0 12px rgba(225,35,43,0)}}
+@keyframes wiggle{0%,30%,100%{transform:none}8%{transform:rotate(-14deg) scale(1.08)}16%{transform:rotate(12deg) scale(1.08)}24%{transform:rotate(-4deg)}}
+@media (hover:hover) and (pointer:fine){.discount-btn:not(:disabled):hover .pct{transform:rotate(-12deg) scale(1.1);transition:transform .2s var(--ease-out)}}
 #calc-status{font-size:13px;color:var(--muted);margin:12px 0 0}
 #calc-status:empty{display:none}
 .calc-source{display:inline-block;margin-top:10px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
