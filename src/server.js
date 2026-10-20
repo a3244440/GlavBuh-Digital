@@ -70,7 +70,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now}={}) {
    if(path==='/healthz')return send(res,200,{status:'ok',leads:telegramConfigured?'enabled':'disabled',indexing:ready});
    if(path==='/robots.txt')return send(res,200,ready?`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${siteUrl}/sitemap.xml\n`:'User-agent: *\nDisallow: /\n','text/plain; charset=utf-8');
    if(path==='/sitemap.xml')return send(res,200,`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${(ready?['/','/calculator/',...originalPaths,...services.map(s=>`/uslugi/${s.slug}/`)]:[]).map(p=>`<url><loc>${siteUrl}${p}</loc></url>`).join('')}</urlset>`,'application/xml; charset=utf-8');
-   if(/^\/fonts\/golos-text-(cyrillic|latin)-(400|500|600)-normal\.woff2$/.test(path)) { const data=await readFile(new URL(`../public${path}`,import.meta.url)); res.writeHead(200,{'Content-Type':'font/woff2','Cache-Control':'public, max-age=31536000, immutable'}); return res.end(req.method==='HEAD'?undefined:data); }
+   if(/^\/fonts\/(golos-text-(cyrillic|latin)-(400|500|600)-normal|geologica-(cyrillic|latin|latin-ext)|martian-mono-(cyrillic|latin))\.woff2$/.test(path)) { const data=await readFile(new URL(`../public${path}`,import.meta.url)); res.writeHead(200,{'Content-Type':'font/woff2','Cache-Control':'public, max-age=31536000, immutable'}); return res.end(req.method==='HEAD'?undefined:data); }
    if(assets.has(path)){
     const [name,type]=assets.get(path);
     const data=await readFile(new URL(`../public/${name}`,import.meta.url));
