@@ -3,14 +3,14 @@ export const pricing = {
  monthly:{simplified:{name:'Standard · СНР',services:50000},general:{name:'Gold · ОУР',services:150000}},
  goodsSupplement:100000,includedEmployees:5,employeeBlock:10000,employeeBlockSize:5,nonresident:50000,
  issuedLimit:60,receivedLimit:60,paymentLimit:50,excess:20000,
- vat:50000,import:50000,export:50000,vatRefund:50000,assembly:250000,
+ vat:50000,import:50000,export:50000,vatRefund:50000,fixedAssets:50000,assembly:250000,
  restorationMinimum:150000,
  currencyStatement:25000,tengeStatement:10000
 };
 export function calculateQuote(input,rates=pricing){
  if(!input||!['maintenance','restoration'].includes(input.task)||!['ip','too'].includes(input.organization)||!['simplified','general'].includes(input.regime)||!['services','goods','mixed'].includes(input.activity)||!['none','import','export','both'].includes(input.trade))throw Error('Проверьте выбранные параметры.');
  for(const [key,max] of [['employees',10000],['issuedInvoices',100000],['receivedInvoices',100000],['payments',100000],['currencyStatements',100000],['tengeStatements',10000],['months',120]])if(!Number.isInteger(input[key])||input[key]<(key==='months'?1:0)||input[key]>max)throw Error('Проверьте количество сотрудников, документов и месяцев.');
- for(const key of ['nonresident','vat','vatRefund','assembly'])if(typeof input[key]!=='boolean')throw Error('Проверьте дополнительные услуги.');
+ for(const key of ['nonresident','vat','vatRefund','fixedAssets','assembly'])if(typeof input[key]!=='boolean')throw Error('Проверьте дополнительные услуги.');
  const restoration=input.task==='restoration',tariff=rates.monthly[input.regime];
  const items=[],notes=[],pending=[];
  const add=(label,amount)=>items.push({label,amount});
@@ -37,6 +37,7 @@ export function calculateQuote(input,rates=pricing){
   if(input.trade==='import'||input.trade==='both')add('Импорт · 328 / СНТ / 1-ТС',rates.import);
   if(input.trade==='export'||input.trade==='both')add('Экспорт',rates.export);
   if(input.vatRefund)add('Возврат НДС в рамках сопровождения',rates.vatRefund);
+  if(input.fixedAssets)add('Учёт основных средств',rates.fixedAssets);
   if(input.assembly)add('Комплектация / рекомплектация',rates.assembly);
   notes.push('Первые 5 сотрудников включены. Далее 10 000 ₸ за каждые следующие начатые 5 сотрудников; за каждые следующие начатые 50 платежей +20 000 ₸. Превышение 60 выданных и 60 полученных счетов-фактур: по одной доплате 20 000 ₸ отдельно.');
   if(input.activity==='mixed')notes.push('При наличии товаров к основному ведению добавлено 100 000 ₸; база услуг второй раз не начисляется.');
