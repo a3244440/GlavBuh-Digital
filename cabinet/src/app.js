@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { id, now, hashPassword, verifyPassword, dummyHash, newToken, tokenHash, temporaryPassword, normalizePhone, formatPhone, validBin, rateLimiter } from './security.js';
 import { STATUSES, CATEGORIES, REACTIONS, CONSENT_VERSION } from './constants.js';
 import * as view from './views.js';
+import { setDemo } from './views.js';
 
 const SESSION_DAYS = 30;
 const STATUS_KEYS = STATUSES.map(([k]) => k);
@@ -18,28 +19,50 @@ const ASSETS = {
 };
 const FONT = /^fonts\/(golos-text-(cyrillic|latin)-(400|500|600)-normal|geologica-(cyrillic|latin|latin-ext)|martian-mono-(cyrillic|latin))\.woff2$/;
 
+// Первый администратор из настроек окружения (для хостинга без доступа к консоли, например Vercel).
+// Создаётся, только если такого номера ещё нет; пароль из настроек, его стоит сменить после входа.
+export async function bootstrapAdmin(db, env = process.env) {
+ const phone = normalizePhone(env.CABINET_ADMIN_PHONE);
+ const password = String(env.CABINET_ADMIN_PASSWORD || '');
+ if (!phone || password.length < 8) return false;
+ if (await db.get('SELECT id FROM users WHERE phone = ?', [phone])) return false;
+ await db.run("INSERT INTO users (id, role, name, phone, password_hash, created_at) VALUES (?, 'admin', ?, ?, ?, ?)", [id(), text(env.CABINET_ADMIN_NAME, 80) || 'Администратор', phone, await hashPassword(password), now()]);
+ return true;
+}
+
 class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 const text = (value, max) => String(value ?? '').trim().slice(0, max);
 const validDate = value => value === '' || (/^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)));
 
 export function createCabinet({ db, env = process.env, clock = () => Date.now() } = {}) {
  const secureCookie = env.COOKIE_SECURE !== 'false';
+ // Кабинет может жить по пути, например /cabinet на общем домене: ссылки, редиректы и cookie получают этот префикс.
+ const base = String(env.CABINET_BASE || '').replace(/\/+$/, '');
+ const cookiePath = base || '/';
+ const withBase = html => base ? html.replace(/(href|action|src)="\/(?!\/)/g, `$1="${base}/`).replace(/url\('\/assets\//g, `url('${base}/assets/`) : html;
  const allowedOrigins = new Set(String(env.CABINET_ORIGIN || 'https://cabinet.glav-buh.kz').split(',').map(s => s.trim()).filter(Boolean));
+ setDemo(env.CABINET_DEMO === 'true');
  const loginLimit = rateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
  const registerLimit = rateLimiter({ limit: 20, windowMs: 60 * 60 * 1000 });
  const writeLimit = rateLimiter({ limit: 120, windowMs: 10 * 60 * 1000 });
 
- const send = (res, status, body, type = 'text/html; charset=utf-8', headers = {}) => { res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store', ...headers }); res.end(body); };
+ const send = (res, status, body, type = 'text/html; charset=utf-8', headers = {}) => { res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store', ...headers }); res.end(type.startsWith('text/html') ? withBase(body) : body); };
  // Несколько Set-Cookie в одном ответе: накапливаем, а не перезаписываем.
  const addCookie = (res, value) => { const current = res.getHeader('Set-Cookie'); res.setHeader('Set-Cookie', [...(Array.isArray(current) ? current : current ? [current] : []), value]); };
- const redirect = (res, location, cookies = []) => { cookies.forEach(c => addCookie(res, c)); res.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }); res.end(); };
- const cookie = (token, maxAge) => `gb_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secureCookie ? '; Secure' : ''}`;
+ const redirect = (res, location, cookies = []) => { cookies.forEach(c => addCookie(res, c)); res.writeHead(303, { Location: location.startsWith('/') ? base + location : location, 'Cache-Control': 'no-store' }); res.end(); };
+ const cookie = (token, maxAge) => `gb_session=${token}; Path=${cookiePath}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secureCookie ? '; Secure' : ''}`;
  // Короткое сообщение после действия, живёт до следующего показа страницы.
- const flashCookie = (type, message) => `gb_flash=${encodeURIComponent(JSON.stringify({ type, text: message }))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=60${secureCookie ? '; Secure' : ''}`;
+ const flashCookie = (type, message) => `gb_flash=${encodeURIComponent(JSON.stringify({ type, text: message }))}; Path=${cookiePath}; HttpOnly; SameSite=Lax; Max-Age=60${secureCookie ? '; Secure' : ''}`;
  const readCookies = req => Object.fromEntries(String(req.headers.cookie || '').split(';').map(p => p.trim().split('=')).filter(([k, v]) => k && v !== undefined).map(([k, ...v]) => [k, v.join('=')]));
 
  async function body(req) {
   if (!/^application\/x-www-form-urlencoded(?:;|$)/i.test(req.headers['content-type'] || '')) throw new HttpError(415, 'Ожидается отправка формы.');
+  // На Vercel тело формы может прийти уже разобранным.
+  if (req.body !== undefined) {
+   const raw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : typeof req.body === 'string' ? req.body : null;
+   if (raw !== null) { if (raw.length > 16384) throw new HttpError(413, 'Слишком большой запрос.'); return Object.fromEntries(new URLSearchParams(raw)); }
+   return Object.fromEntries(Object.entries(req.body || {}).map(([k, v]) => [k, String(Array.isArray(v) ? v[0] : v).slice(0, 4000)]));
+  }
   let size = 0; const chunks = [];
   for await (const chunk of req) { size += chunk.length; if (size > 16384) throw new HttpError(413, 'Слишком большой запрос.'); chunks.push(chunk); }
   return Object.fromEntries(new URLSearchParams(Buffer.concat(chunks).toString('utf8')));
@@ -60,7 +83,7 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
   await db.run('UPDATE users SET last_login_at = ? WHERE id = ?', [created.toISOString(), user.id]);
   redirect(res, location, [cookie(token, SESSION_DAYS * 86400)]);
  }
- const home = user => user.must_change_password ? '/password' : user.role === 'client' ? '/cabinet' : '/admin';
+ const home = user => user.must_change_password ? '/password' : user.role === 'client' ? '/my' : '/admin';
 
  // Компания клиента: только своя и только с открытым доступом.
  async function clientCompany(user, companyId) {
@@ -84,14 +107,16 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   if (secureCookie) res.setHeader('Strict-Transport-Security', 'max-age=31536000');
   const url = new URL(req.url, 'http://localhost');
-  const path = url.pathname, method = req.method;
+  if (base && url.pathname !== base && !url.pathname.startsWith(base + '/')) throw new HttpError(404, 'Не найдено.');
+  const path = base ? url.pathname.slice(base.length) || '/' : url.pathname, method = req.method;
 
   if (path === '/healthz') return send(res, 200, JSON.stringify({ status: 'ok', db: db.kind }), 'application/json');
   if (path.startsWith('/assets/') && (method === 'GET' || method === 'HEAD')) {
    const name = path.slice('/assets/'.length);
    const entry = ASSETS[name] || (FONT.test(name) ? [siteDir, 'font/woff2'] : null);
    if (!entry) throw new HttpError(404, 'Не найдено.');
-   const data = await readFile(new URL(name, entry[0]));
+   let data = await readFile(new URL(name, entry[0]));
+   if (name === 'cabinet.css' && base) data = withBase(data.toString('utf8'));
    res.writeHead(200, { 'Content-Type': entry[1], 'Cache-Control': 'public, max-age=3600' });
    return res.end(method === 'HEAD' ? undefined : data);
   }
@@ -99,7 +124,7 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
   const user = await sessionFor(req);
   const cookies = readCookies(req);
   let message = null;
-  if (cookies.gb_flash) { try { message = JSON.parse(decodeURIComponent(cookies.gb_flash)); } catch {} addCookie(res, 'gb_flash=; Path=/; Max-Age=0'); }
+  if (cookies.gb_flash) { try { message = JSON.parse(decodeURIComponent(cookies.gb_flash)); } catch {} addCookie(res, `gb_flash=; Path=${cookiePath}; Max-Age=0`); }
   const ctx = { user, csrf: user?.csrf };
 
   let form = {};
@@ -141,7 +166,7 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
    if (await db.get('SELECT id FROM users WHERE phone = ?', [phone])) return fail('Этот номер уже зарегистрирован. Войдите или запросите временный пароль у менеджера.');
    const account = { id: id(), role: 'client' };
    await db.run('INSERT INTO users (id, role, name, phone, password_hash, consent_at, consent_version, marketing, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [account.id, 'client', values.name, phone, await hashPassword(form.password), now(), CONSENT_VERSION, values.marketing ? 1 : 0, now()]);
-   return startSession(res, account, '/cabinet');
+   return startSession(res, account, '/my');
   }
 
   if (!user) return method === 'GET' ? redirect(res, '/login') : send(res, 401, view.loginPage({ error: 'Войдите, чтобы продолжить.' }));
@@ -161,14 +186,14 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
    await db.run('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?', [await hashPassword(form.password), user.id]);
    // Остальные сессии этого пользователя закрываем.
    await db.run('DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?', [user.id, user.token_hash]);
-   return back(user.role === 'client' ? '/cabinet' : '/admin', 'ok', 'Пароль сохранён.');
+   return back(user.role === 'client' ? '/my' : '/admin', 'ok', 'Пароль сохранён.');
   }
   if (user.must_change_password) return redirect(res, '/password');
 
   /* ----- кабинет клиента ----- */
-  if (path.startsWith('/cabinet')) {
+  if (path === '/my' || path.startsWith('/my/')) {
    if (user.role !== 'client') return redirect(res, '/admin');
-   if (path === '/cabinet' && method === 'GET') {
+   if (path === '/my' && method === 'GET') {
     const companies = await db.all(`SELECT c.*,
       (SELECT COUNT(*) FROM processes p WHERE p.company_id = c.id AND p.status IN ('planned','in_progress')) AS open,
       (SELECT COUNT(*) FROM processes p WHERE p.company_id = c.id AND p.status = 'waiting_client') AS waiting,
@@ -177,20 +202,20 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
     const offer = await db.get('SELECT id FROM offer_requests WHERE user_id = ?', [user.id]);
     return send(res, 200, view.clientHome({ ...ctx, companies: companies.map(c => ({ ...c, open: Number(c.open), waiting: Number(c.waiting), done: Number(c.done) })), offerRequested: Boolean(offer), message }));
    }
-   if (path === '/cabinet/companies' && method === 'POST') {
+   if (path === '/my/companies' && method === 'POST') {
     const bin = String(form.bin || '').replace(/\s/g, '');
-    if (!validBin(bin)) return back('/cabinet', 'error', 'Проверьте БИН или ИИН: нужно 12 цифр без ошибок в контрольном разряде.');
-    if (await db.get('SELECT id FROM companies WHERE owner_id = ? AND bin = ?', [user.id, bin])) return back('/cabinet', 'error', 'Эта компания уже добавлена.');
+    if (!validBin(bin)) return back('/my', 'error', 'Проверьте БИН или ИИН: нужно 12 цифр без ошибок в контрольном разряде.');
+    if (await db.get('SELECT id FROM companies WHERE owner_id = ? AND bin = ?', [user.id, bin])) return back('/my', 'error', 'Эта компания уже добавлена.');
     const count = await db.get('SELECT COUNT(*) AS n FROM companies WHERE owner_id = ?', [user.id]);
-    if (Number(count.n) >= 20) return back('/cabinet', 'error', 'Добавлено слишком много компаний. Свяжитесь с менеджером.');
+    if (Number(count.n) >= 20) return back('/my', 'error', 'Добавлено слишком много компаний. Свяжитесь с менеджером.');
     await db.run("INSERT INTO companies (id, owner_id, bin, name, status, requested_at) VALUES (?, ?, ?, ?, 'pending', ?)", [id(), user.id, bin, text(form.name, 120), now()]);
-    return back('/cabinet', 'ok', 'Заявка на договор отправлена. Менеджер свяжется с вами.');
+    return back('/my', 'ok', 'Заявка на договор отправлена. Менеджер свяжется с вами.');
    }
-   if (path === '/cabinet/offer' && method === 'POST') {
+   if (path === '/my/offer' && method === 'POST') {
     if (!(await db.get('SELECT id FROM offer_requests WHERE user_id = ?', [user.id]))) await db.run('INSERT INTO offer_requests (id, user_id, comment, created_at) VALUES (?, ?, ?, ?)', [id(), user.id, text(form.comment, 1000), now()]);
-    return back('/cabinet', 'ok', 'Спасибо! Расскажем о платформе.');
+    return back('/my', 'ok', 'Спасибо! Расскажем о платформе.');
    }
-   let match = path.match(/^\/cabinet\/c\/([\w-]{36})$/);
+   let match = path.match(/^\/my\/c\/([\w-]{36})$/);
    if (match && method === 'GET') {
     const company = await clientCompany(user, match[1]);
     const processes = await db.all(`SELECT p.*,
@@ -199,24 +224,24 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
       FROM processes p WHERE p.company_id = ? ORDER BY p.updated_at DESC`, [company.id]);
     return send(res, 200, view.companyBoard({ ...ctx, company, processes: processes.map(p => ({ ...p, feedback: Number(p.feedback) })), message }));
    }
-   match = path.match(/^\/cabinet\/p\/([\w-]{36})$/);
+   match = path.match(/^\/my\/p\/([\w-]{36})$/);
    if (match && method === 'GET') {
     const { process, company } = await clientProcess(user, match[1]);
     return send(res, 200, view.clientProcess({ ...ctx, company, process, updates: await updatesFor(process.id), message }));
    }
-   match = path.match(/^\/cabinet\/p\/([\w-]{36})\/feedback$/);
+   match = path.match(/^\/my\/p\/([\w-]{36})\/feedback$/);
    if (match && method === 'POST') {
     const { process } = await clientProcess(user, match[1]);
     const reaction = REACTION_KEYS.includes(form.reaction) ? form.reaction : 'ok';
     await db.run("INSERT INTO updates (id, process_id, author_id, kind, body, reaction, read_by_staff, created_at) VALUES (?, ?, ?, 'client_feedback', ?, ?, 0, ?)", [id(), process.id, user.id, text(form.body, 2000), reaction, now()]);
-    return back(`/cabinet/p/${process.id}`, 'ok', 'Спасибо, команда увидит ваш отзыв.');
+    return back(`/my/p/${process.id}`, 'ok', 'Спасибо, команда увидит ваш отзыв.');
    }
    throw new HttpError(404, 'Страница не найдена.');
   }
 
   /* ----- админка ----- */
   if (path.startsWith('/admin')) {
-   if (user.role === 'client') return redirect(res, '/cabinet');
+   if (user.role === 'client') return redirect(res, '/my');
    if (path === '/admin' && method === 'GET') {
     const pending = await db.all("SELECT c.*, u.name AS owner_name, u.phone AS owner_phone FROM companies c JOIN users u ON u.id = c.owner_id WHERE c.status = 'pending' ORDER BY c.requested_at");
     const feedback = await db.all("SELECT u.*, p.title AS process_title, c.name AS company_name, c.bin, a.name AS author_name FROM updates u JOIN processes p ON p.id = u.process_id JOIN companies c ON c.id = p.company_id JOIN users a ON a.id = u.author_id WHERE u.kind = 'client_feedback' AND u.read_by_staff = 0 ORDER BY u.created_at DESC LIMIT 100");
@@ -332,6 +357,7 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
  const { openDatabase } = await import('./db.js');
  const db = await openDatabase();
+ await bootstrapAdmin(db);
  const server = createCabinet({ db });
  server.requestTimeout = 20000; server.headersTimeout = 15000;
  const port = Number(process.env.PORT || 3100);

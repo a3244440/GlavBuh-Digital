@@ -5,4 +5,5 @@
 docs
 node_modules
 *.log
-cabinet
+cabinet/data
+cabinet/test
