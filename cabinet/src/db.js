@@ -132,7 +132,13 @@ async function postgres(url) {
  return api;
 }
 
-export async function openDatabase(spec = process.env.CABINET_DB || 'sqlite:./data/cabinet.db') {
+// Строка подключения: CABINET_DB, иначе переменные, которые Vercel и Neon задают при подключении базы.
+export function databaseSpec(env = process.env) {
+ return env.CABINET_DB || env.POSTGRES_URL || env.DATABASE_URL || (env.VERCEL ? 'sqlite:/tmp/cabinet.db' : 'sqlite:./data/cabinet.db');
+}
+export const isTemporary = spec => spec.startsWith('sqlite:/tmp/') || spec === 'sqlite::memory:';
+
+export async function openDatabase(spec = databaseSpec()) {
  const db = spec.startsWith('postgres://') || spec.startsWith('postgresql://')
   ? await postgres(spec)
   : spec.startsWith('sqlite:') ? await sqlite(spec.slice('sqlite:'.length)) : null;

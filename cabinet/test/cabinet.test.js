@@ -37,8 +37,8 @@ async function start(t, spec) {
 async function registerClient(browser, phone = '+7 707 111 22 33', name = 'Арман') {
  const b = browser();
  const r = await b.post('/register', { name, phone, password: 'secret-pass-1', password2: 'secret-pass-1', consent: 'on' });
- assert.equal(r.status, 303); assert.equal(r.location, '/cabinet');
- await b.get('/cabinet');
+ assert.equal(r.status, 303); assert.equal(r.location, '/my');
+ await b.get('/my');
  return b;
 }
 async function staffBrowser(db, browser, role = 'admin') {
@@ -72,7 +72,7 @@ for (const [name, spec] of backends) {
    [{ name: 'Арман', phone: '+77071112233', password: 'secret-pass-1', password2: 'secret-pass-1' }, /согласие/]
   ]) { const r = await b.post('/register', fields); assert.equal(r.status, 400); assert.match(r.html, message); }
   const client = await registerClient(browser);
-  const home = await client.get('/cabinet');
+  const home = await client.get('/my');
   assert.match(home.html, /Кабинет пока пуст/);
   assert.doesNotMatch(home.html, /class="board"/);
   assert.match(home.html, /Платформа для вашей бухгалтерии/);
@@ -83,17 +83,17 @@ for (const [name, spec] of backends) {
  test(`${name}: full flow from BIN request to contract, processes and client feedback`, async t => {
   const { db, browser } = await start(t, spec);
   const client = await registerClient(browser);
-  const bad = await client.follow('/cabinet/companies', { bin: '130640018279' });
+  const bad = await client.follow('/my/companies', { bin: '130640018279' });
   assert.match(bad.html, /Проверьте БИН или ИИН/);
-  const ok = await client.follow('/cabinet/companies', { bin: BIN, name: 'ТОО «Тест»' });
+  const ok = await client.follow('/my/companies', { bin: BIN, name: 'ТОО «Тест»' });
   assert.match(ok.html, /Заявка на договор отправлена/);
   assert.match(ok.html, /Ожидают договора/);
   const company = await db.get('SELECT * FROM companies WHERE bin = ?', [BIN]);
   assert.equal(company.status, 'pending');
-  assert.equal((await client.get(`/cabinet/c/${company.id}`)).status, 404, 'no access before the contract');
-  assert.equal((await client.get('/admin')).location, '/cabinet', 'clients never reach the admin area');
-  await client.follow('/cabinet/offer', { comment: 'Хотим автоматизировать склад' });
-  assert.match((await client.get('/cabinet')).html, /Заявка принята/);
+  assert.equal((await client.get(`/my/c/${company.id}`)).status, 404, 'no access before the contract');
+  assert.equal((await client.get('/admin')).location, '/my', 'clients never reach the admin area');
+  await client.follow('/my/offer', { comment: 'Хотим автоматизировать склад' });
+  assert.match((await client.get('/my')).html, /Заявка принята/);
 
   const admin = await staffBrowser(db, browser);
   let page = await admin.get('/admin');
@@ -108,12 +108,12 @@ for (const [name, spec] of backends) {
   await admin.get(`/admin/p/${proc.id}`);
   await admin.follow(`/admin/p/${proc.id}`, { status: 'waiting_client', due_date: '2027-02-15', body: 'Нужна выписка за декабрь' });
 
-  const board = await client.get(`/cabinet/c/${company.id}`);
+  const board = await client.get(`/my/c/${company.id}`);
   assert.equal(board.status, 200);
   assert.match(board.html, /ФНО 910\.00 за 2 полугодие/); assert.match(board.html, /Ждём от вас/); assert.match(board.html, /chat\.whatsapp\.com\/AbCdEfGhIjKlMn/);
-  const detail = await client.get(`/cabinet/p/${proc.id}`);
+  const detail = await client.get(`/my/p/${proc.id}`);
   assert.match(detail.html, /Нужна выписка за декабрь/); assert.match(detail.html, /Статус: Ждём от вас/);
-  const fb = await client.follow(`/cabinet/p/${proc.id}/feedback`, { reaction: 'question', body: 'Выписку пришлём завтра' });
+  const fb = await client.follow(`/my/p/${proc.id}/feedback`, { reaction: 'question', body: 'Выписку пришлём завтра' });
   assert.match(fb.html, /команда увидит/); assert.match(fb.html, /Выписку пришлём завтра/);
 
   page = await admin.get('/admin');
@@ -123,16 +123,16 @@ for (const [name, spec] of backends) {
 
   // Другой клиент не видит чужую компанию и процесс.
   const stranger = await registerClient(browser, '+7 707 999 88 77', 'Чужой');
-  assert.equal((await stranger.get(`/cabinet/c/${company.id}`)).status, 404);
-  assert.equal((await stranger.get(`/cabinet/p/${proc.id}`)).status, 404);
-  assert.equal((await stranger.post(`/cabinet/p/${proc.id}/feedback`, { reaction: 'ok' })).status, 404);
+  assert.equal((await stranger.get(`/my/c/${company.id}`)).status, 404);
+  assert.equal((await stranger.get(`/my/p/${proc.id}`)).status, 404);
+  assert.equal((await stranger.post(`/my/p/${proc.id}/feedback`, { reaction: 'ok' })).status, 404);
  });
 
  test(`${name}: CSRF, origin, login limits and cookie flags`, async t => {
   const { db, browser } = await start(t, spec);
   const client = await registerClient(browser);
-  assert.equal((await client.post('/cabinet/companies', { bin: BIN }, { withCsrf: false })).status, 403);
-  assert.equal((await client.post('/cabinet/companies', { bin: BIN }, { origin: 'https://evil.example' })).status, 403);
+  assert.equal((await client.post('/my/companies', { bin: BIN }, { withCsrf: false })).status, 403);
+  assert.equal((await client.post('/my/companies', { bin: BIN }, { origin: 'https://evil.example' })).status, 403);
   const anon = browser();
   const wrong = await anon.post('/login', { phone: '+77071112233', password: 'wrong-pass' });
   assert.equal(wrong.status, 401); assert.match(wrong.html, /Неверный телефон или пароль/);
@@ -147,7 +147,7 @@ for (const [name, spec] of backends) {
   assert.ok(Number(sessions.n) >= 2);
   const out = await client.post('/logout', {});
   assert.equal(out.location, '/login');
-  assert.equal((await client.get('/cabinet')).location, '/login');
+  assert.equal((await client.get('/my')).location, '/login');
  });
 
  test(`${name}: temporary password forces a new password and closes old sessions`, async t => {
@@ -158,15 +158,15 @@ for (const [name, spec] of backends) {
   await admin.get('/admin/clients');
   const reset = await admin.post(`/admin/users/${user.id}/reset`, {});
   const temp = reset.html.match(/: ([A-Za-z0-9]{10})\. Передайте/)[1];
-  assert.equal((await client.get('/cabinet')).location, '/login', 'old session is closed');
+  assert.equal((await client.get('/my')).location, '/login', 'old session is closed');
   const b = browser();
   assert.equal((await b.post('/login', { phone: '+77071112233', password: 'secret-pass-1' })).status, 401);
   const login = await b.post('/login', { phone: '+77071112233', password: temp });
   assert.equal(login.location, '/password');
-  assert.equal((await b.get('/cabinet')).location, '/password');
+  assert.equal((await b.get('/my')).location, '/password');
   await b.get('/password');
   const changed = await b.post('/password', { current: temp, password: 'brand-new-pass', password2: 'brand-new-pass' });
-  assert.equal(changed.location, '/cabinet');
+  assert.equal(changed.location, '/my');
   // Сотрудник без роли администратора не видит раздел сотрудников.
   const manager = await staffBrowser(db, browser, 'staff');
   assert.equal((await manager.get('/admin/staff')).status, 404);
@@ -176,3 +176,32 @@ for (const [name, spec] of backends) {
   assert.match(staff.html, /Временный пароль: [A-Za-z0-9]{10}/);
  });
 }
+
+test('base path: links, redirects, cookies and assets live under the prefix', async t => {
+ const db = await openDatabase('sqlite::memory:');
+ const server = createCabinet({ db, env: { COOKIE_SECURE: 'false', CABINET_ORIGIN: ORIGIN, CABINET_BASE: '/cabinet', CABINET_DEMO: 'true' } });
+ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+ t.after(async () => { await new Promise(resolve => server.close(resolve)); await db.close(); });
+ const base = `http://127.0.0.1:${server.address().port}`;
+ assert.equal((await fetch(base + '/cabinet', { redirect: 'manual' })).headers.get('location'), '/cabinet/login');
+ const page = await (await fetch(base + '/cabinet/register')).text();
+ assert.match(page, /action="\/cabinet\/register"/); assert.match(page, /href="\/cabinet\/assets\/cabinet\.css"/); assert.match(page, /Демо-версия кабинета/);
+ assert.match(page, /href="https:\/\/glav-buh\.kz\/privacy-policy\//, 'external links stay untouched');
+ const css = await (await fetch(base + '/cabinet/assets/cabinet.css')).text();
+ assert.match(css, /url\('\/cabinet\/assets\/fonts\//);
+ const reg = await fetch(base + '/cabinet/register', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded', origin: ORIGIN }, body: new URLSearchParams({ name: 'Арман', phone: '+77071112233', password: 'secret-pass-1', password2: 'secret-pass-1', consent: 'on' }) });
+ assert.equal(reg.headers.get('location'), '/cabinet/my');
+ assert.match(reg.headers.getSetCookie().join(';'), /Path=\/cabinet;/);
+ assert.equal((await fetch(base + '/other')).status, 404);
+});
+
+test('admin from environment is created once', async () => {
+ const { bootstrapAdmin } = await import('../src/app.js');
+ const db = await openDatabase('sqlite::memory:');
+ const env = { CABINET_ADMIN_PHONE: '+7 707 000 00 09', CABINET_ADMIN_PASSWORD: 'admin-pass-123', CABINET_ADMIN_NAME: 'Джамиля' };
+ assert.equal(await bootstrapAdmin(db, env), true);
+ assert.equal(await bootstrapAdmin(db, env), false);
+ assert.equal((await db.get("SELECT role, name FROM users WHERE phone = '+77070000009'")).role, 'admin');
+ assert.equal(await bootstrapAdmin(db, { CABINET_ADMIN_PHONE: '+77070000010', CABINET_ADMIN_PASSWORD: 'short' }), false);
+ await db.close();
+});
