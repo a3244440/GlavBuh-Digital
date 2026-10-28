@@ -65,7 +65,7 @@ if(form) {
   form.elements.months.disabled=!restoring;
   form.querySelectorAll('.monthly-options').forEach(section=>{section.hidden=restoring;section.querySelectorAll('input').forEach(field=>field.disabled=restoring)});
   const data=new FormData(form);
-  const input={...Object.fromEntries(data),employees:Number(data.get('employees')),currencyStatements:Number(data.get('currencyStatements')),tengeStatements:Number(data.get('tengeStatements')),issuedInvoices:Number(data.get('issuedInvoices')),receivedInvoices:Number(data.get('receivedInvoices')),payments:Number(data.get('payments')),nonresident:data.has('nonresident'),vat:data.has('vat'),vatRefund:data.has('vatRefund'),assembly:data.has('assembly'),months:data.get('task')==='restoration'?Number(data.get('months')):1};
+  const input={...Object.fromEntries(data),employees:Number(data.get('employees')),currencyStatements:Number(data.get('currencyStatements')),tengeStatements:Number(data.get('tengeStatements')),issuedInvoices:Number(data.get('issuedInvoices')),receivedInvoices:Number(data.get('receivedInvoices')),payments:Number(data.get('payments')),nonresident:data.has('nonresident'),vat:data.has('vat'),vatRefund:data.has('vatRefund'),fixedAssets:data.has('fixedAssets'),assembly:data.has('assembly'),months:data.get('task')==='restoration'?Number(data.get('months')):1};
   form.querySelector('.restore-months').hidden=input.task!=='restoration';
   byId('calc-status').textContent='';
   const errors=validateFields();

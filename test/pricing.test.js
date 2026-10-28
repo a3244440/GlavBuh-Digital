@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateQuote} from '../public/pricing.js';
-const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:0,currencyStatements:0,tengeStatements:0,issuedInvoices:60,receivedInvoices:60,payments:50,months:1,nonresident:false,vat:false,vatRefund:false,assembly:false};
+const input={task:'maintenance',organization:'ip',regime:'simplified',activity:'services',trade:'none',employees:0,currencyStatements:0,tengeStatements:0,issuedInvoices:60,receivedInvoices:60,payments:50,months:1,nonresident:false,vat:false,vatRefund:false,fixedAssets:false,assembly:false};
 test('corporate photograph tariffs depend on regime and activity, not IP/TOO',()=>{
  for(const organization of ['ip','too'])for(const [regime,activity,base,total] of [['simplified','services',50000,50000],['simplified','goods',150000,150000],['simplified','mixed',150000,150000],['general','services',150000,150000],['general','goods',250000,250000],['general','mixed',250000,250000]]){
   const q=calculateQuote({...input,organization,regime,activity});assert.equal(q.subtotal,base);assert.equal(q.total,total);assert.equal(q.unit,'в месяц');
@@ -23,10 +23,10 @@ test('invoice and payment thresholds are monthly; payment blocks repeat, invoice
 
 });
 test('each corporate supplement is applied; import and export are separate',()=>{
- for(const patch of [{nonresident:true},{vat:true},{vatRefund:true},{trade:'import'},{trade:'export'}])assert.equal(calculateQuote({...input,...patch}).subtotal,100000);
+ for(const patch of [{nonresident:true},{vat:true},{vatRefund:true},{fixedAssets:true},{trade:'import'},{trade:'export'}])assert.equal(calculateQuote({...input,...patch}).subtotal,100000);
  assert.equal(calculateQuote({...input,assembly:true}).subtotal,300000);
- const all=calculateQuote({...input,regime:'general',activity:'mixed',employees:6,issuedInvoices:61,receivedInvoices:61,payments:51,nonresident:true,vat:true,vatRefund:true,trade:'both',assembly:true});
- assert.equal(all.subtotal,820000);assert.equal(all.total,820000);
+ const all=calculateQuote({...input,regime:'general',activity:'mixed',employees:6,issuedInvoices:61,receivedInvoices:61,payments:51,nonresident:true,vat:true,vatRefund:true,fixedAssets:true,trade:'both',assembly:true});
+ assert.equal(all.subtotal,870000);assert.equal(all.total,870000);
 });
 test('restoration stays a project minimum and excludes recurring supplements',()=>{
  const q=calculateQuote({...input,task:'restoration',months:12,employees:50,vat:true,assembly:true,trade:'both'});assert.equal(q.subtotal,150000);assert.equal(q.total,150000);assert.equal(q.unit,'за проект');assert.match(q.pending.join(' '),/12 мес/);assert.equal(q.items.length,1);
