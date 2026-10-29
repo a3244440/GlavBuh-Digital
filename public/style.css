@@ -592,7 +592,8 @@ h3{font:500 21px/1.15 var(--display);letter-spacing:-.035em;margin:0}
 .about{padding-top:140px}
 .scatter{font:500 clamp(40px,6.4vw,104px)/.95 var(--display);letter-spacing:-.065em;margin:0}
 .scatter > span{display:block}
-.scatter .ch{display:inline-block;will-change:transform}
+.scatter .ch,.giant .ch{display:inline-block;will-change:transform}
+.wd{display:inline-block;white-space:nowrap}
 .about .trio{margin-top:70px}
 
 .process{padding-top:150px}
@@ -665,3 +666,7 @@ h3{font:500 21px/1.15 var(--display);letter-spacing:-.035em;margin:0}
 .trail{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:96;overflow:visible}
 .trail line{stroke:var(--red);stroke-linecap:round}
 @media (prefers-reduced-motion:reduce){.split .wi{translate:none}.hero-kicker::before,.hero-cue i{animation:none}}
+@media (max-width:960px){
+ .mega{font-size:clamp(48px,14vw,120px);line-height:.92}
+ .panel{margin-top:56px}
+}
