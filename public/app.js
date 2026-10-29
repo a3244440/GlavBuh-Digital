@@ -233,13 +233,19 @@ if (!reducedMotion) {
     const chars = [];
     eachText(block, node => {
       const fragment = document.createDocumentFragment();
-      [...node.textContent].forEach(char => {
-        if (/\s/.test(char)) { fragment.append(char); return; }
-        const span = document.createElement('span');
-        span.className = 'ch'; span.textContent = char;
-        span.setAttribute('aria-hidden', 'true');
-        chars.push({ span, x: (Math.random() - 0.5) * 260, y: (Math.random() - 0.3) * 220, r: (Math.random() - 0.5) * 70 });
-        fragment.append(span);
+      // Буквы одного слова держим в общей обёртке, чтобы строка не переносилась посреди слова
+      node.textContent.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { fragment.append(part); return; }
+        const word = document.createElement('span');
+        word.className = 'wd'; word.setAttribute('aria-hidden', 'true');
+        [...part].forEach(char => {
+          const span = document.createElement('span');
+          span.className = 'ch'; span.textContent = char;
+          chars.push({ span, x: (Math.random() - 0.5) * 260, y: (Math.random() - 0.3) * 220, r: (Math.random() - 0.5) * 70 });
+          word.append(span);
+        });
+        fragment.append(word);
       });
       node.replaceWith(fragment);
     });
@@ -260,13 +266,14 @@ if (!reducedMotion) {
     scatters.forEach(({ block, chars }) => {
       const top = block.getBoundingClientRect().top;
       const k = 1 - clamp((top - vh * 0.3) / (vh * 0.6));
-      const e = 1 - Math.pow(1 - k, 3), rest = 1 - e;
+      const e = 1 - Math.pow(1 - k, 3), rest = wide() ? 1 - e : 0;
       chars.forEach(({ span, x, y, r }) => { span.style.transform = rest > 0.001 ? `translate(${(x * rest).toFixed(1)}px,${(y * rest).toFixed(1)}px) rotate(${(r * rest).toFixed(1)}deg)` : ''; span.style.opacity = (0.15 + 0.85 * e).toFixed(2); });
     });
     if (bigwords) {
       const box = bigwords.getBoundingClientRect();
       const k = clamp((vh - box.top) / (box.height + vh));
-      mega.forEach((line, i) => { line.style.transform = `translateX(${((i % 2 ? -1 : 1) * (0.5 - k) * 18).toFixed(2)}vw)`; });
+      // На узких экранах строки не сдвигаем: им некуда уезжать, текст должен читаться целиком
+      mega.forEach((line, i) => { line.style.transform = wide() ? `translateX(${((i % 2 ? -1 : 1) * (0.5 - k) * 18).toFixed(2)}vw)` : ''; });
       if (fly && wide()) {
         // Карточка идёт по дуге слева направо и переворачивается
         const x = -10 + k * 78, y = Math.sin(k * Math.PI) * -22 + k * 10;
