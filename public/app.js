@@ -189,3 +189,130 @@ form?.addEventListener('submit', async event => {
     status.textContent = 'Не удалось подтвердить отправку. Проверьте соединение. Перед повторной отправкой убедитесь, что заявка не была получена.';
   } finally { button.disabled = false; }
 });
+
+// Живой слой: заголовки по словам, бегущая строка, карточки за курсором, магнитные кнопки.
+// Всё отключается при «уменьшить движение»; без JS страница остаётся статичной и читаемой.
+if (!reducedMotion) {
+  const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  // Заголовки поднимаются по словам из-под маски
+  const splitWords = heading => {
+    const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    let index = 0;
+    nodes.forEach(node => {
+      const parts = node.textContent.split(/(\s+)/);
+      const fragment = document.createDocumentFragment();
+      parts.forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { fragment.append(part); return; }
+        const outer = document.createElement('span'); outer.className = 'w';
+        const inner = document.createElement('span'); inner.className = 'wi'; inner.textContent = part;
+        inner.style.setProperty('--i', index++);
+        outer.append(inner); fragment.append(outer);
+      });
+      node.replaceWith(fragment);
+    });
+    heading.classList.add('split');
+  };
+  const headings = [...document.querySelectorAll('main h1, main .head h2, main .reveal > h2, main .reveal h2[id], .box.redc h2')];
+  const wordObserver = 'IntersectionObserver' in window && new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('in');
+    wordObserver.unobserve(entry.target);
+  }), { rootMargin: '0px 0px -8% 0px' });
+  headings.forEach(heading => {
+    if (heading.classList.contains('split')) return;
+    splitWords(heading);
+    if (wordObserver) wordObserver.observe(heading); else heading.classList.add('in');
+  });
+
+  // Полоса прогресса прокрутки
+  const progress = document.createElement('div');
+  progress.className = 'scroll-progress';
+  progress.setAttribute('aria-hidden', 'true');
+  document.body.append(progress);
+
+  // Бегущая строка ускоряется от прокрутки и разворачивается при прокрутке вверх
+  const tickers = [...document.querySelectorAll('.ticker-track')].map(track => track.getAnimations?.()[0]).filter(Boolean);
+  const stage = document.querySelector('.app-stage');
+  const steps = document.querySelector('.process .g4');
+  let lastY = scrollY, boost = 0, direction = 1, frame = 0;
+  const loop = () => {
+    frame = 0;
+    const y = scrollY, max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
+    const delta = y - lastY; lastY = y;
+    if (delta) direction = delta > 0 ? 1 : -1;
+    boost = Math.max(boost * 0.9, Math.min(6, Math.abs(delta) / 8));
+    tickers.forEach(animation => { animation.playbackRate = direction * (1 + boost); });
+    // Окно платформы «встаёт» из наклона, пока страница уходит вверх
+    if (stage) {
+      const k = Math.min(1, y / 420);
+      stage.style.transform = `perspective(1400px) rotateX(${(1 - k) * 7}deg) scale(${0.96 + k * 0.04})`;
+    }
+    // Линия процесса заполняется по мере прокрутки секции
+    if (steps) {
+      const box = steps.getBoundingClientRect();
+      const k = Math.min(1, Math.max(0, (innerHeight * 0.85 - box.top) / (box.height + innerHeight * 0.35)));
+      steps.style.setProperty('--p', k.toFixed(3));
+    }
+    if (boost > 0.02) frame = requestAnimationFrame(loop);
+  };
+  const kick = () => { if (!frame) frame = requestAnimationFrame(loop); };
+  addEventListener('scroll', kick, { passive: true });
+  addEventListener('resize', kick);
+  loop();
+
+  if (fine) {
+    // Карточки слегка наклоняются за курсором, под курсором мягкий свет
+    document.querySelectorAll('.tile, .plan, .faq-list, .box.redc').forEach(card => {
+      card.classList.add('tilt');
+      const flat = !card.matches('.tile, .plan');
+      card.addEventListener('pointermove', event => {
+        const r = card.getBoundingClientRect();
+        const x = (event.clientX - r.left) / r.width, y = (event.clientY - r.top) / r.height;
+        card.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
+        card.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
+        if (!flat) {
+          card.style.setProperty('--ry', `${((x - 0.5) * 6).toFixed(2)}deg`);
+          card.style.setProperty('--rx', `${((0.5 - y) * 6).toFixed(2)}deg`);
+        }
+      });
+      card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+    });
+
+    // Главные кнопки тянутся к курсору
+    document.querySelectorAll('.btn.red, .cabinet-login, .header-cta').forEach(button => {
+      button.classList.add('magnet');
+      button.addEventListener('pointermove', event => {
+        if (button.disabled) return;
+        const r = button.getBoundingClientRect();
+        button.style.translate = `${((event.clientX - r.left - r.width / 2) * 0.25).toFixed(1)}px ${((event.clientY - r.top - r.height / 2) * 0.35).toFixed(1)}px`;
+      });
+      button.addEventListener('pointerleave', () => { button.style.translate = ''; });
+    });
+
+    // Кольцо-курсор: догоняет указатель и растёт над ссылками и кнопками
+    const ring = document.createElement('div');
+    ring.className = 'cursor-ring';
+    ring.setAttribute('aria-hidden', 'true');
+    document.body.append(ring);
+    let tx = -100, ty = -100, cx = -100, cy = -100, moving = 0;
+    const follow = () => {
+      cx += (tx - cx) * 0.2; cy += (ty - cy) * 0.2;
+      ring.style.transform = `translate(${cx}px, ${cy}px)`;
+      moving = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.3 ? requestAnimationFrame(follow) : 0;
+    };
+    addEventListener('pointermove', event => {
+      tx = event.clientX; ty = event.clientY;
+      ring.classList.add('on');
+      ring.classList.toggle('big', Boolean(event.target.closest?.('a, button, summary, label, [role="tab"]')));
+      if (!moving) moving = requestAnimationFrame(follow);
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => ring.classList.remove('on'));
+    addEventListener('pointerdown', () => ring.classList.add('press'));
+    addEventListener('pointerup', () => ring.classList.remove('press'));
+  }
+}
