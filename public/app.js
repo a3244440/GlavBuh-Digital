@@ -252,6 +252,11 @@ if (!reducedMotion) {
   const bigwords = document.querySelector('.bigwords-in');
   const panel = document.querySelector('[data-bloom]');
   const folders = [...document.querySelectorAll('.folder')];
+  const photo = document.querySelector('[data-photo]');
+  const photoFrame = photo?.querySelector('.panel-photo-in');
+  const photoImg = photo?.querySelector('img');
+  const heroCards = [...document.querySelectorAll('.hp')];
+  let pointerX = 0, pointerY = 0;
 
   let frame = 0;
   const render = () => {
@@ -278,6 +283,21 @@ if (!reducedMotion) {
       panel.style.transform = `scale(${(0.86 + 0.14 * k).toFixed(4)})`;
       panel.style.borderRadius = `${Math.round(80 - 52 * k)}px`;
     }
+    if (photoFrame) {
+      // Фото раскрывается из узкого окна во всю ширину и чуть отдаляется
+      const k = clamp((vh - photo.getBoundingClientRect().top) / (vh * 0.9));
+      const e = 1 - Math.pow(1 - k, 2), rest = 1 - e;
+      photoFrame.style.clipPath = `inset(${(rest * 22).toFixed(2)}% ${(rest * 28).toFixed(2)}% round ${Math.round(18 + rest * 40)}px)`;
+      photoImg.style.transform = `scale(${(1 + rest * 0.35).toFixed(4)})`;
+    }
+    if (heroCards.length && wide()) {
+      // Карточки с фото следуют за курсором и разлетаются при прокрутке
+      const k = clamp(scrollY / vh);
+      heroCards.forEach((card, i) => {
+        const side = i % 2 ? 1 : -1, depth = 14 + i * 8;
+        card.style.transform = `translate(${(pointerX * depth + side * k * 260).toFixed(1)}px, ${(pointerY * depth - k * 180).toFixed(1)}px) rotate(${(side * k * 18).toFixed(2)}deg)`;
+      });
+    }
     if (wide()) folders.forEach((folder, i) => {
       // Следующая папка наезжает: текущая уменьшается, наклоняется и темнеет
       const next = folders[i + 1];
@@ -291,6 +311,10 @@ if (!reducedMotion) {
   addEventListener('scroll', kick, { passive: true });
   addEventListener('resize', kick);
   render();
+  if (fine && heroCards.length) addEventListener('pointermove', event => {
+    pointerX = event.clientX / innerWidth - 0.5; pointerY = event.clientY / innerHeight - 0.5;
+    if (scrollY < innerHeight) kick();
+  }, { passive: true });
 
   // Шлейф за курсором: цепочка линий догоняет указатель
   if (fine) {

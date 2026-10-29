@@ -665,3 +665,20 @@ h3{font:500 21px/1.15 var(--display);letter-spacing:-.035em;margin:0}
 .trail{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:96;overflow:visible}
 .trail line{stroke:var(--red);stroke-linecap:round}
 @media (prefers-reduced-motion:reduce){.split .wi{translate:none}.hero-kicker::before,.hero-cue i{animation:none}}
+
+/* Фото Астаны */
+.panel-photo{margin:80px 0 0;width:100%}
+.panel-photo-in{overflow:hidden;border-radius:18px;aspect-ratio:1920/1000;background:#1b1b1b}
+.panel-photo img{display:block;width:100%;height:100%;object-fit:cover;transform-origin:50% 60%}
+.panel-photo figcaption{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13px;color:#9A9A9A;text-align:left}
+.panel-photo figcaption span:first-child{color:#fff;font-weight:500}
+.panel-photo figcaption a{text-decoration:underline;text-underline-offset:3px}
+.panel-photo figcaption a:hover{color:#fff}
+.hero-photos{position:absolute;inset:0;pointer-events:none;z-index:0}
+.hero-in{position:relative;z-index:1}
+.hp{position:absolute;margin:0;width:clamp(150px,14vw,230px);aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#ddd;box-shadow:0 30px 60px -24px rgba(0,0,0,.4);will-change:transform}
+.hp img{display:block;width:100%;height:100%;object-fit:cover}
+.hp-l{left:3%;top:16%;rotate:-8deg}
+.hp-r{right:3%;top:48%;rotate:7deg}
+@media (max-width:1100px){.hero-photos{display:none}}
+@media (max-width:640px){.panel-photo{margin-top:50px}.panel-photo-in{border-radius:12px;aspect-ratio:4/3}}
