@@ -119,7 +119,7 @@ document.querySelectorAll('[data-tabs]').forEach(block => {
   function clip(index) {
     const tab = tabs[index];
     const right = list.offsetWidth - tab.offsetLeft - tab.offsetWidth;
-    active.style.clipPath = `inset(5px ${right}px 5px ${tab.offsetLeft}px round 10px)`;
+    active.style.clipPath = `inset(5px ${right}px 5px ${tab.offsetLeft}px round 99px)`;
   }
   function select(index, focus) {
     tabs.forEach((tab, i) => { tab.setAttribute('aria-selected', String(i === index)); tab.tabIndex = i === index ? 0 : -1; });
@@ -190,21 +190,31 @@ form?.addEventListener('submit', async event => {
   } finally { button.disabled = false; }
 });
 
-// Живой слой: заголовки по словам, бегущая строка, карточки за курсором, магнитные кнопки.
-// Всё отключается при «уменьшить движение»; без JS страница остаётся статичной и читаемой.
+// Анимации главной в духе галерейных сайтов: заголовки по словам, буквы собираются при прокрутке,
+// огромные слова разъезжаются, карточка летит, тёмная панель раскрывается, папки шагов уходят стопкой.
+// При «уменьшить движение» ничего не запускается, страница остаётся статичной и читаемой.
 if (!reducedMotion) {
   const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
-
-  // Заголовки поднимаются по словам из-под маски
-  const splitWords = heading => {
-    const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+  const wide = () => innerWidth > 960;
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const eachText = (root, fn) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(fn);
+  };
+
+  // Заголовки поднимаются по словам из-под маски
+  const wordObserver = 'IntersectionObserver' in window && new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('in');
+    wordObserver.unobserve(entry.target);
+  }), { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('main h1, main h2:not([data-scatter]):not(.mega):not(.giant)').forEach(heading => {
     let index = 0;
-    nodes.forEach(node => {
-      const parts = node.textContent.split(/(\s+)/);
+    eachText(heading, node => {
       const fragment = document.createDocumentFragment();
-      parts.forEach(part => {
+      node.textContent.split(/(\s+)/).forEach(part => {
         if (!part) return;
         if (/^\s+$/.test(part)) { fragment.append(part); return; }
         const outer = document.createElement('span'); outer.className = 'w';
@@ -215,104 +225,109 @@ if (!reducedMotion) {
       node.replaceWith(fragment);
     });
     heading.classList.add('split');
-  };
-  const headings = [...document.querySelectorAll('main h1, main .head h2, main .reveal > h2, main .reveal h2[id], .box.redc h2')];
-  const wordObserver = 'IntersectionObserver' in window && new IntersectionObserver(entries => entries.forEach(entry => {
-    if (!entry.isIntersecting) return;
-    entry.target.classList.add('in');
-    wordObserver.unobserve(entry.target);
-  }), { rootMargin: '0px 0px -8% 0px' });
-  headings.forEach(heading => {
-    if (heading.classList.contains('split')) return;
-    splitWords(heading);
     if (wordObserver) wordObserver.observe(heading); else heading.classList.add('in');
   });
 
-  // Полоса прогресса прокрутки
-  const progress = document.createElement('div');
-  progress.className = 'scroll-progress';
-  progress.setAttribute('aria-hidden', 'true');
-  document.body.append(progress);
+  // Буквы разбросаны и собираются в текст по мере прокрутки
+  const scatters = [...document.querySelectorAll('[data-scatter], .giant')].map(block => {
+    const chars = [];
+    eachText(block, node => {
+      const fragment = document.createDocumentFragment();
+      [...node.textContent].forEach(char => {
+        if (/\s/.test(char)) { fragment.append(char); return; }
+        const span = document.createElement('span');
+        span.className = 'ch'; span.textContent = char;
+        span.setAttribute('aria-hidden', 'true');
+        chars.push({ span, x: (Math.random() - 0.5) * 260, y: (Math.random() - 0.3) * 220, r: (Math.random() - 0.5) * 70 });
+        fragment.append(span);
+      });
+      node.replaceWith(fragment);
+    });
+    block.setAttribute('aria-label', block.textContent.replace(/\s+/g, ' ').trim());
+    return { block, chars };
+  });
 
-  // Бегущая строка ускоряется от прокрутки и разворачивается при прокрутке вверх
-  const tickers = [...document.querySelectorAll('.ticker-track')].map(track => track.getAnimations?.()[0]).filter(Boolean);
-  const stage = document.querySelector('.app-stage');
-  const steps = document.querySelector('.process .g4');
-  let lastY = scrollY, boost = 0, direction = 1, frame = 0;
-  const loop = () => {
+  const mega = [...document.querySelectorAll('.mega span')];
+  const fly = document.querySelector('.fly');
+  const bigwords = document.querySelector('.bigwords-in');
+  const panel = document.querySelector('[data-bloom]');
+  const folders = [...document.querySelectorAll('.folder')];
+
+  let frame = 0;
+  const render = () => {
     frame = 0;
-    const y = scrollY, max = document.documentElement.scrollHeight - innerHeight;
-    progress.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
-    const delta = y - lastY; lastY = y;
-    if (delta) direction = delta > 0 ? 1 : -1;
-    boost = Math.max(boost * 0.9, Math.min(6, Math.abs(delta) / 8));
-    tickers.forEach(animation => { animation.playbackRate = direction * (1 + boost); });
-    // Окно платформы «встаёт» из наклона, пока страница уходит вверх
-    if (stage) {
-      const k = Math.min(1, y / 420);
-      stage.style.transform = `perspective(1400px) rotateX(${(1 - k) * 7}deg) scale(${0.96 + k * 0.04})`;
+    const vh = innerHeight;
+    scatters.forEach(({ block, chars }) => {
+      const top = block.getBoundingClientRect().top;
+      const k = 1 - clamp((top - vh * 0.3) / (vh * 0.6));
+      const e = 1 - Math.pow(1 - k, 3), rest = 1 - e;
+      chars.forEach(({ span, x, y, r }) => { span.style.transform = rest > 0.001 ? `translate(${(x * rest).toFixed(1)}px,${(y * rest).toFixed(1)}px) rotate(${(r * rest).toFixed(1)}deg)` : ''; span.style.opacity = (0.15 + 0.85 * e).toFixed(2); });
+    });
+    if (bigwords) {
+      const box = bigwords.getBoundingClientRect();
+      const k = clamp((vh - box.top) / (box.height + vh));
+      mega.forEach((line, i) => { line.style.transform = `translateX(${((i % 2 ? -1 : 1) * (0.5 - k) * 18).toFixed(2)}vw)`; });
+      if (fly && wide()) {
+        // Карточка идёт по дуге слева направо и переворачивается
+        const x = -10 + k * 78, y = Math.sin(k * Math.PI) * -22 + k * 10;
+        fly.style.transform = `translate(${x.toFixed(2)}vw, ${y.toFixed(2)}vh) rotate(${(-18 + k * 44).toFixed(1)}deg)`;
+      }
     }
-    // Линия процесса заполняется по мере прокрутки секции
-    if (steps) {
-      const box = steps.getBoundingClientRect();
-      const k = Math.min(1, Math.max(0, (innerHeight * 0.85 - box.top) / (box.height + innerHeight * 0.35)));
-      steps.style.setProperty('--p', k.toFixed(3));
+    if (panel) {
+      const k = clamp((vh - panel.getBoundingClientRect().top) / (vh * 0.8));
+      panel.style.transform = `scale(${(0.86 + 0.14 * k).toFixed(4)})`;
+      panel.style.borderRadius = `${Math.round(80 - 52 * k)}px`;
     }
-    if (boost > 0.02) frame = requestAnimationFrame(loop);
+    if (wide()) folders.forEach((folder, i) => {
+      // Следующая папка наезжает: текущая уменьшается, наклоняется и темнеет
+      const next = folders[i + 1];
+      if (!next) { folder.style.transform = ''; folder.style.filter = ''; return; }
+      const covered = clamp((vh - next.getBoundingClientRect().top) / (vh - 110));
+      folder.style.transform = covered ? `translateY(${(-covered * 30).toFixed(1)}px) scale(${(1 - covered * 0.08).toFixed(4)}) rotate(${(-covered * 3).toFixed(2)}deg)` : '';
+      folder.style.filter = covered ? `brightness(${(1 - covered * 0.35).toFixed(3)})` : '';
+    });
   };
-  const kick = () => { if (!frame) frame = requestAnimationFrame(loop); };
+  const kick = () => { if (!frame) frame = requestAnimationFrame(render); };
   addEventListener('scroll', kick, { passive: true });
   addEventListener('resize', kick);
-  loop();
+  render();
 
+  // Шлейф за курсором: цепочка линий догоняет указатель
   if (fine) {
-    // Карточки слегка наклоняются за курсором, под курсором мягкий свет
-    document.querySelectorAll('.tile, .plan, .faq-list, .box.redc').forEach(card => {
-      card.classList.add('tilt');
-      const flat = !card.matches('.tile, .plan');
-      card.addEventListener('pointermove', event => {
-        const r = card.getBoundingClientRect();
-        const x = (event.clientX - r.left) / r.width, y = (event.clientY - r.top) / r.height;
-        card.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
-        card.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
-        if (!flat) {
-          card.style.setProperty('--ry', `${((x - 0.5) * 6).toFixed(2)}deg`);
-          card.style.setProperty('--rx', `${((0.5 - y) * 6).toFixed(2)}deg`);
-        }
-      });
-      card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', 'trail'); svg.setAttribute('aria-hidden', 'true');
+    document.body.append(svg);
+    const total = 22, points = Array.from({ length: total + 1 }, () => ({ x: -50, y: -50 }));
+    const lines = Array.from({ length: total }, (_, i) => {
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('stroke-width', (2.4 * (1 - i / total) + 0.4).toFixed(2));
+      line.setAttribute('stroke-opacity', (1 - i / total).toFixed(2));
+      svg.append(line);
+      return line;
     });
-
-    // Главные кнопки тянутся к курсору
-    document.querySelectorAll('.btn.red, .cabinet-login, .header-cta').forEach(button => {
-      button.classList.add('magnet');
-      button.addEventListener('pointermove', event => {
-        if (button.disabled) return;
-        const r = button.getBoundingClientRect();
-        button.style.translate = `${((event.clientX - r.left - r.width / 2) * 0.25).toFixed(1)}px ${((event.clientY - r.top - r.height / 2) * 0.35).toFixed(1)}px`;
+    let target = null, idle = 0, running = 0;
+    const step = () => {
+      points[0].x += (target.x - points[0].x) * 0.55;
+      points[0].y += (target.y - points[0].y) * 0.55;
+      let moving = Math.abs(target.x - points[0].x) + Math.abs(target.y - points[0].y);
+      for (let i = 1; i <= total; i++) {
+        const a = points[i - 1], b = points[i];
+        b.x += (a.x - b.x) * 0.42; b.y += (a.y - b.y) * 0.42;
+        moving += Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+      }
+      lines.forEach((line, i) => {
+        line.setAttribute('x1', points[i].x); line.setAttribute('y1', points[i].y);
+        line.setAttribute('x2', points[i + 1].x); line.setAttribute('y2', points[i + 1].y);
       });
-      button.addEventListener('pointerleave', () => { button.style.translate = ''; });
-    });
-
-    // Кольцо-курсор: догоняет указатель и растёт над ссылками и кнопками
-    const ring = document.createElement('div');
-    ring.className = 'cursor-ring';
-    ring.setAttribute('aria-hidden', 'true');
-    document.body.append(ring);
-    let tx = -100, ty = -100, cx = -100, cy = -100, moving = 0;
-    const follow = () => {
-      cx += (tx - cx) * 0.2; cy += (ty - cy) * 0.2;
-      ring.style.transform = `translate(${cx}px, ${cy}px)`;
-      moving = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.3 ? requestAnimationFrame(follow) : 0;
+      running = moving > 0.5 || Date.now() - idle < 120 ? requestAnimationFrame(step) : 0;
     };
     addEventListener('pointermove', event => {
-      tx = event.clientX; ty = event.clientY;
-      ring.classList.add('on');
-      ring.classList.toggle('big', Boolean(event.target.closest?.('a, button, summary, label, [role="tab"]')));
-      if (!moving) moving = requestAnimationFrame(follow);
+      if (event.pointerType !== 'mouse') return;
+      if (!target) points.forEach(p => { p.x = event.clientX; p.y = event.clientY; });
+      target = { x: event.clientX, y: event.clientY };
+      idle = Date.now();
+      if (!running) running = requestAnimationFrame(step);
     }, { passive: true });
-    document.addEventListener('pointerleave', () => ring.classList.remove('on'));
-    addEventListener('pointerdown', () => ring.classList.add('press'));
-    addEventListener('pointerup', () => ring.classList.remove('press'));
   }
 }
