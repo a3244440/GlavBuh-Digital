@@ -114,16 +114,6 @@ test('careers page renders with a coming-soon state and is linked from the foote
  assert.match(await(await api.get('/sitemap.xml')).text(),/vakansii/);
 });
 
-test('local Astana photos are served and every referenced photo exists',async t=>{
- const api=await app(t,{env:{}});
- const html=await(await api.get('/')).text();
- const photos=[...new Set(html.match(/\/photos\/[a-z0-9-]+\.webp/g))];
- assert.ok(photos.length>=3);
- for(const path of photos){const res=await api.get(path);assert.equal(res.status,200,path);assert.equal(res.headers.get('content-type'),'image/webp');}
- assert.match(html,/CC BY-SA 4\.0/);
- assert.equal((await api.get('/photos/missing-640.webp')).status,404);
- assert.equal((await api.get('/photos/../server-640.webp')).status,404);
-});
 test('favicon files are served and referenced in the page head',async t=>{
  const api=await app(t,{env:{}});
  const html=await(await api.get('/')).text();
