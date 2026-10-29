@@ -1,8 +1,9 @@
 Copyright 2019 The Golos Text Project Authors (https://github.com/googlefonts/golos-text)
 Copyright 2022 The Geologica Project Authors (https://github.com/Monotype/Geologica)
 Copyright 2021 The Martian Mono Project Authors (https://github.com/evilmartians/mono)
+Copyright 2022 The Inter Project Authors (https://github.com/rsms/inter-tight)
 
-Golos Text, Geologica and Martian Mono are distributed under the same license.
+Golos Text, Geologica, Martian Mono and Inter Tight are distributed under the same license.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
