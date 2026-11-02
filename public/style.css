@@ -646,12 +646,12 @@ h3{font:500 21px/1.15 var(--display);letter-spacing:-.035em;margin:0}
  .trio{grid-template-columns:1fr;gap:22px}
  .folder-in{grid-template-columns:1fr;padding:34px}
  .dark-head{grid-template-columns:1fr}
- .fly{display:none}
+ .fly{position:relative;left:auto;top:auto;rotate:none;margin:34px auto 0;width:min(280px,78vw)}
 }
 @media (max-width:640px){
  .hero{min-height:auto;padding:56px 0 120px}
  .folders{gap:40px}
- .folder{position:relative;top:auto;min-height:0}
+ .folder{top:76px;min-height:0}
  .folder-in{padding:28px 22px}
  .dark-zone{margin-top:100px;padding:90px 0;border-radius:20px 20px 0 0}
  .panel{border-radius:20px}
@@ -669,4 +669,11 @@ h3{font:500 21px/1.15 var(--display);letter-spacing:-.035em;margin:0}
 @media (max-width:960px){
  .mega{font-size:clamp(48px,14vw,120px);line-height:.92}
  .panel{margin-top:56px}
+}
+
+/* Телефон: карточки уезжают за край во время анимации, но страница не должна скроллиться вбок */
+main{overflow-x:clip}
+@media (hover:none){
+ .dcard,.plan,.folder-chip,.chips a{transition:scale .15s var(--ease-out),background-color .25s ease}
+ .dcard:active,.plan:active,.chips a:active{scale:.97}
 }

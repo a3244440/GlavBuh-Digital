@@ -242,7 +242,7 @@ if (!reducedMotion) {
         [...part].forEach(char => {
           const span = document.createElement('span');
           span.className = 'ch'; span.textContent = char;
-          chars.push({ span, x: (Math.random() - 0.5) * 260, y: (Math.random() - 0.3) * 220, r: (Math.random() - 0.5) * 70 });
+          chars.push({ span, x: (Math.random() - 0.5) * 260, y: (Math.random() - 0.3) * 220, r: (Math.random() - 0.5) * 70, my: 18 + Math.random() * 60, mr: (Math.random() - 0.5) * 28 });
           word.append(span);
         });
         fragment.append(word);
@@ -258,6 +258,7 @@ if (!reducedMotion) {
   const bigwords = document.querySelector('.bigwords-in');
   const panel = document.querySelector('[data-bloom]');
   const folders = [...document.querySelectorAll('.folder')];
+  const dealt = [...document.querySelectorAll('.prices .plan, .dcard, .trio article')];
 
   let frame = 0;
   const render = () => {
@@ -266,18 +267,32 @@ if (!reducedMotion) {
     scatters.forEach(({ block, chars }) => {
       const top = block.getBoundingClientRect().top;
       const k = 1 - clamp((top - vh * 0.3) / (vh * 0.6));
-      const e = 1 - Math.pow(1 - k, 3), rest = wide() ? 1 - e : 0;
-      chars.forEach(({ span, x, y, r }) => { span.style.transform = rest > 0.001 ? `translate(${(x * rest).toFixed(1)}px,${(y * rest).toFixed(1)}px) rotate(${(r * rest).toFixed(1)}deg)` : ''; span.style.opacity = (0.15 + 0.85 * e).toFixed(2); });
+      const e = 1 - Math.pow(1 - k, 3), rest = 1 - e, w = wide();
+      // На компьютере буквы разлетаются во все стороны, на телефоне падают сверху на своё место
+      chars.forEach(({ span, x, y, r, my, mr }) => {
+        span.style.transform = rest > 0.001 ? (w ? `translate(${(x * rest).toFixed(1)}px,${(y * rest).toFixed(1)}px) rotate(${(r * rest).toFixed(1)}deg)` : `translateY(${(-my * rest).toFixed(1)}px) rotate(${(mr * rest).toFixed(1)}deg)`) : '';
+        span.style.opacity = (0.1 + 0.9 * e).toFixed(2);
+      });
     });
     if (bigwords) {
       const box = bigwords.getBoundingClientRect();
       const k = clamp((vh - box.top) / (box.height + vh));
       // На узких экранах строки не сдвигаем: им некуда уезжать, текст должен читаться целиком
-      mega.forEach((line, i) => { line.style.transform = wide() ? `translateX(${((i % 2 ? -1 : 1) * (0.5 - k) * 18).toFixed(2)}vw)` : ''; });
+      // На телефоне каждая строка по очереди поднимается и вырастает до полного размера
+      mega.forEach((line, i) => {
+        if (wide()) { line.style.transform = `translateX(${((i % 2 ? -1 : 1) * (0.5 - k) * 18).toFixed(2)}vw)`; line.style.opacity = ''; return; }
+        const t = clamp((vh * 0.95 - line.getBoundingClientRect().top) / (vh * 0.32)), rest = 1 - t;
+        line.style.transform = rest > 0.001 ? `translateY(${(rest * 60).toFixed(1)}px) scale(${(0.82 + 0.18 * t).toFixed(3)}) rotate(${((i % 2 ? 1 : -1) * rest * 4).toFixed(2)}deg)` : '';
+        line.style.opacity = (0.1 + 0.9 * t).toFixed(2);
+      });
       if (fly && wide()) {
         // Карточка идёт по дуге слева направо и переворачивается
         const x = -10 + k * 78, y = Math.sin(k * Math.PI) * -22 + k * 10;
         fly.style.transform = `translate(${x.toFixed(2)}vw, ${y.toFixed(2)}vh) rotate(${(-18 + k * 44).toFixed(1)}deg)`;
+      } else if (fly) {
+        // На телефоне карточка влетает справа под текст и ложится с лёгким наклоном
+        const t = clamp((vh * 0.95 - fly.getBoundingClientRect().top) / (vh * 0.45)), e = 1 - Math.pow(1 - t, 3);
+        fly.style.transform = `translateX(${((1 - e) * 80).toFixed(2)}vw) rotate(${(-6 + (1 - e) * 26).toFixed(2)}deg)`;
       }
     }
     if (panel) {
@@ -285,11 +300,18 @@ if (!reducedMotion) {
       panel.style.transform = `scale(${(0.86 + 0.14 * k).toFixed(4)})`;
       panel.style.borderRadius = `${Math.round(80 - 52 * k)}px`;
     }
-    if (wide()) folders.forEach((folder, i) => {
+    // На телефоне карточки въезжают по очереди с разных сторон, как раздаваемые карты
+    dealt.forEach((card, i) => {
+      if (wide()) { card.style.transform = ''; return; }
+      const t = clamp((vh * 1.02 - card.getBoundingClientRect().top) / (vh * 0.4)), rest = 1 - Math.pow(t, 0.8);
+      const side = i % 2 ? 1 : -1;
+      card.style.transform = rest > 0.001 ? `translateX(${(side * rest * 34).toFixed(1)}vw) rotate(${(side * rest * 9).toFixed(2)}deg) scale(${(1 - rest * 0.08).toFixed(3)})` : '';
+    });
+    folders.forEach((folder, i) => {
       // Следующая папка наезжает: текущая уменьшается, наклоняется и темнеет
       const next = folders[i + 1];
       if (!next) { folder.style.transform = ''; folder.style.filter = ''; return; }
-      const covered = clamp((vh - next.getBoundingClientRect().top) / (vh - 110));
+      const covered = clamp((vh - next.getBoundingClientRect().top) / (vh - (wide() ? 110 : 76)));
       folder.style.transform = covered ? `translateY(${(-covered * 30).toFixed(1)}px) scale(${(1 - covered * 0.08).toFixed(4)}) rotate(${(-covered * 3).toFixed(2)}deg)` : '';
       folder.style.filter = covered ? `brightness(${(1 - covered * 0.35).toFixed(3)})` : '';
     });
