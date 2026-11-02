@@ -677,3 +677,20 @@ main{overflow-x:clip}
  .dcard,.plan,.folder-chip,.chips a{transition:scale .15s var(--ease-out),background-color .25s ease}
  .dcard:active,.plan:active,.chips a:active{scale:.97}
 }
+
+/* Телефон и планшет: узкий шрифт с сильно сжатой разрядкой на маленьком экране слипается.
+   Здесь разрядка свободнее, а строки выше. */
+@media (max-width:960px){
+ :root{--body:'Golos Text','Inter Tight',Arial,sans-serif}
+ body,.mono,.lbl,.hero-kicker{letter-spacing:0}
+ .hero-sub{font-size:18px}
+ h1,.hero h1{letter-spacing:-.03em;line-height:1.04}
+ h2,.statement,.panel-title,.contact-info h2,.dark-head h2{letter-spacing:-.03em;line-height:1.06}
+ .giant,.mega{letter-spacing:-.045em;line-height:.98}
+ .scatter{letter-spacing:-.035em;line-height:1.04}
+ h3,.trio h3,.dcard h3,.folder h3,.prices .plan h3,.fly b,.form-title{letter-spacing:-.02em;line-height:1.12}
+ .faq .faq-list summary,.marks{letter-spacing:-.015em}
+ .folder-n{letter-spacing:-.05em}
+ .hero-sub{letter-spacing:-.005em;line-height:1.42}
+ .lead,.prices-lead,.panel-text,.side-note,.trio p,.folder-body p:not(.lbl),.dcard p,.faq .faq-list details p{letter-spacing:.005em;line-height:1.55}
+}
