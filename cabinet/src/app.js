@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { id, now, hashPassword, verifyPassword, dummyHash, newToken, tokenHash, temporaryPassword, normalizePhone, formatPhone, validBin, rateLimiter } from './security.js';
 import { STATUSES, CATEGORIES, REACTIONS, CONSENT_VERSION } from './constants.js';
 import * as view from './views.js';
-import { setDemo } from './views.js';
+import { setDemo, setSite } from './views.js';
 
 const SESSION_DAYS = 30;
 const STATUS_KEYS = STATUSES.map(([k]) => k);
@@ -39,9 +39,10 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
  // Кабинет может жить по пути, например /cabinet на общем домене: ссылки, редиректы и cookie получают этот префикс.
  const base = String(env.CABINET_BASE || '').replace(/\/+$/, '');
  const cookiePath = base || '/';
- const withBase = html => base ? html.replace(/(href|action|src)="\/(?!\/)/g, `$1="${base}/`).replace(/url\('\/assets\//g, `url('${base}/assets/`) : html;
+ const withBase = html => base ? html.replace(/(?<!data-root )(href|action|src)="\/(?!\/)/g, `$1="${base}/`).replace(/url\('\/assets\//g, `url('${base}/assets/`) : html;
  const allowedOrigins = new Set(String(env.CABINET_ORIGIN || 'https://cabinet.glav-buh.kz').split(',').map(s => s.trim()).filter(Boolean));
  setDemo(env.CABINET_DEMO === 'true');
+ setSite(env.CABINET_SITE_URL);
  const loginLimit = rateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
  const registerLimit = rateLimiter({ limit: 20, windowMs: 60 * 60 * 1000 });
  const writeLimit = rateLimiter({ limit: 120, windowMs: 10 * 60 * 1000 });
