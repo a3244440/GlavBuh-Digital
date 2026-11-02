@@ -40,6 +40,7 @@ CABINET_TEST_PG=postgres://user@127.0.0.1:5432/cabinet_test npm test   # и на
 | --- | --- |
 | `CABINET_DB` | `sqlite:./data/cabinet.db` (по умолчанию) или `postgres://user:pass@host:5432/db` |
 | `CABINET_ORIGIN` | Адрес кабинета для проверки Origin, по умолчанию `https://cabinet.glav-buh.kz`. Несколько через запятую |
+| `CABINET_SITE_URL` | Куда ведут логотип, «На сайт» и политика конфиденциальности. По умолчанию `https://glav-buh.kz`; пустая строка означает сайт на том же домене, что и кабинет |
 | `COOKIE_SECURE` | `false` только для локальной разработки без HTTPS |
 | `PORT`, `HOST` | По умолчанию `3100`, `0.0.0.0` |
 
@@ -66,7 +67,7 @@ docker exec -it <container> node scripts/create-staff.js --name "Имя" --phone
 
 ## Временно на Vercel: glavbuhdigital.vercel.app/cabinet
 
-Пока нет сервера в РК, кабинет работает внутри функции сайта на Vercel по пути `/cabinet` (`api/index.js` передаёт ему все запросы с этим префиксом, остальное обслуживает сайт). Адреса внутри кабинета: `/cabinet/login`, `/cabinet/my`, `/cabinet/admin`.
+Пока нет сервера в РК, кабинет работает внутри функции сайта на Vercel по пути `/cabinet` (`api/index.js` передаёт ему все запросы с этим префиксом, остальное обслуживает сайт). Адреса внутри кабинета: `/cabinet/login`, `/cabinet/my`, `/cabinet/admin`. Логотип и «На сайт» ведут на главную этого же домена.
 
 Настройки в Vercel (Project → Settings → Environment Variables), после изменения нужен новый деплой:
 
@@ -82,7 +83,7 @@ docker exec -it <container> node scripts/create-staff.js --name "Имя" --phone
 ## Перед заменой cabinet.glav-buh.kz
 
 - Сейчас по этому адресу работает текущая платформа. Решите, что будет с её пользователями и данными, и только потом переключайте DNS.
-- Сайт ссылается на `https://cabinet.glav-buh.kz/`; адрес менять не нужно.
+- Сайт ссылается на кабинет относительной ссылкой `/cabinet`. Если кабинет переедет на cabinet.glav-buh.kz, поменяйте ссылки на сайте и задайте `CABINET_SITE_URL=https://glav-buh.kz`.
 - Кабинет не индексируется поисковиками (`noindex`).
 
 ## Что пока не сделано

@@ -195,6 +195,18 @@ test('base path: links, redirects, cookies and assets live under the prefix', as
  assert.equal((await fetch(base + '/other')).status, 404);
 });
 
+test('inside the site: logo, "На сайт" and policy lead to the site, not to the cabinet', async t => {
+ const db = await openDatabase('sqlite::memory:');
+ const server = createCabinet({ db, env: { COOKIE_SECURE: 'false', CABINET_ORIGIN: ORIGIN, CABINET_BASE: '/cabinet', CABINET_SITE_URL: '' } });
+ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+ t.after(async () => { await new Promise(resolve => server.close(resolve)); await db.close(); });
+ const page = await (await fetch(`http://127.0.0.1:${server.address().port}/cabinet/login`)).text();
+ assert.match(page, /<a class="brand" data-root href="\/">/);
+ assert.match(page, /data-root href="\/">На сайт</);
+ assert.match(page, /data-root href="\/privacy-policy\/"/);
+ assert.doesNotMatch(page, /glav-buh\.kz/);
+ assert.match(page, /href="\/cabinet\/register"/, 'cabinet links keep the prefix');
+});
 test('admin from environment is created once', async () => {
  const { bootstrapAdmin } = await import('../src/app.js');
  const db = await openDatabase('sqlite::memory:');

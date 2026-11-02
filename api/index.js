@@ -15,7 +15,7 @@ function cabinetHandler() {
     await bootstrapAdmin(db, process.env);
     const origins = ['https://glavbuhdigital.vercel.app', process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
       .filter(Boolean).map(host => host.startsWith('https://') ? host : `https://${host}`);
-    const env = { ...process.env, CABINET_BASE: '/cabinet', CABINET_ORIGIN: process.env.CABINET_ORIGIN || origins.join(','), CABINET_DEMO: isTemporary(spec) ? 'true' : process.env.CABINET_DEMO };
+    const env = { ...process.env, CABINET_BASE: '/cabinet', CABINET_SITE_URL: process.env.CABINET_SITE_URL ?? '', CABINET_ORIGIN: process.env.CABINET_ORIGIN || origins.join(','), CABINET_DEMO: isTemporary(spec) ? 'true' : process.env.CABINET_DEMO };
     return createCabinet({ db, env }).listeners('request')[0];
   })().catch(error => { cabinet = undefined; throw error; });
   return cabinet;
