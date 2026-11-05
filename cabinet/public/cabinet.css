@@ -193,3 +193,15 @@ main > .box + .box,main > .split + .box,main > .box + .split,main > .board + .bo
  .pad,.form{padding:20px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation:none!important}}
+
+/* Профиль */
+.profile{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;align-items:start;margin-bottom:48px}
+.profile > .flash{grid-column:1/-1}
+.profile .kv{display:grid;font-size:15px}
+.profile .kv > div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.profile .kv > div > span:first-child{color:var(--muted)}
+.profile .hint{margin:0;font-size:13px;color:var(--muted)}
+.profile-side{padding:28px;display:grid;gap:12px;justify-items:start}
+.profile-side h2{margin:0;font-size:22px}
+.profile-side p{margin:0;color:var(--muted)}
+@media (max-width:760px){.profile{grid-template-columns:1fr}}
