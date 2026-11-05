@@ -103,11 +103,19 @@ async function sqlite(location) {
  return api;
 }
 
-async function postgres(url) {
+async function postgres(url, ca) {
  let pg;
  try { pg = (await import('pg')).default; }
  catch { throw Error('Для PostgreSQL установите зависимость: npm install pg (в папке cabinet).'); }
- const pool = new pg.Pool({ connectionString: url, max: 10 });
+ // Облачные базы (Supabase и др.) подписывают сертификат своим центром: его PEM приходит в DATABASE_CA_CERT,
+ // и соединение проверяется по нему. Параметры ssl из строки подключения pg ставит выше объекта, поэтому их убираем.
+ let config = { connectionString: url, max: 5 };
+ if (ca) {
+  const clean = new URL(url);
+  for (const key of ['sslmode', 'sslrootcert', 'sslcert', 'sslkey', 'ssl']) clean.searchParams.delete(key);
+  config = { connectionString: clean.toString(), max: 5, ssl: { ca: ca.replace(/\\n/g, '\n'), rejectUnauthorized: true } };
+ }
+ const pool = new pg.Pool(config);
  const numbered = sql => { let i = 0; return sql.replace(/\?/g, () => `$${++i}`); };
  const make = client => ({
   kind: 'postgres',
@@ -138,9 +146,9 @@ export function databaseSpec(env = process.env) {
 }
 export const isTemporary = spec => spec.startsWith('sqlite:/tmp/') || spec === 'sqlite::memory:';
 
-export async function openDatabase(spec = databaseSpec()) {
+export async function openDatabase(spec = databaseSpec(), env = process.env) {
  const db = spec.startsWith('postgres://') || spec.startsWith('postgresql://')
-  ? await postgres(spec)
+  ? await postgres(spec, env.DATABASE_CA_CERT)
   : spec.startsWith('sqlite:') ? await sqlite(spec.slice('sqlite:'.length)) : null;
  if (!db) throw Error('CABINET_DB должен начинаться с sqlite: или postgres://');
  for (const statement of SCHEMA) await db.run(statement);
