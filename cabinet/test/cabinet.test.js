@@ -150,6 +150,28 @@ for (const [name, spec] of backends) {
   assert.equal((await client.get('/my')).location, '/login');
  });
 
+ test(`${name}: profile shows account data and saves name and marketing choice`, async t => {
+  const { db, browser } = await start(t, spec);
+  const client = await registerClient(browser);
+  const page = await client.get('/profile');
+  assert.equal(page.status, 200);
+  assert.match(page.html, /value="Арман"/); assert.match(page.html, /\+7 707 111 22 33|\+7 \(707\) 111/); assert.match(page.html, /Согласие на обработку данных/);
+  assert.match((await client.get('/my')).html, /href="\/profile">Профиль</);
+  const saved = await client.follow('/profile', { name: 'Арман Сейткали', marketing: 'on' });
+  assert.match(saved.html, /Профиль сохранён/); assert.match(saved.html, /value="Арман Сейткали"/); assert.match(saved.html, /name="marketing" checked/);
+  let row = await db.get('SELECT name, marketing FROM users WHERE phone = ?', ['+77071112233']);
+  assert.equal(row.name, 'Арман Сейткали'); assert.equal(Number(row.marketing), 1);
+  await client.follow('/profile', { name: 'Арман Сейткали' });
+  row = await db.get('SELECT marketing FROM users WHERE phone = ?', ['+77071112233']);
+  assert.equal(Number(row.marketing), 0, 'unchecked box withdraws marketing consent');
+  const bad = await client.post('/profile', { name: '<' });
+  assert.equal(bad.status, 400); assert.match(bad.html, /не короче 2 символов/);
+  assert.equal((await client.post('/profile', { name: 'Чужой' }, { withCsrf: false })).status, 403);
+  const admin = await staffBrowser(db, browser);
+  const staffPage = await admin.get('/profile');
+  assert.match(staffPage.html, /Администратор/); assert.doesNotMatch(staffPage.html, /name="marketing"/);
+  assert.equal((await browser().get('/profile')).location, '/login');
+ });
  test(`${name}: temporary password forces a new password and closes old sessions`, async t => {
   const { db, browser } = await start(t, spec);
   const client = await registerClient(browser);

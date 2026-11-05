@@ -175,6 +175,16 @@ export function createCabinet({ db, env = process.env, clock = () => Date.now() 
    await db.run('DELETE FROM sessions WHERE token_hash = ?', [user.token_hash]);
    return redirect(res, '/login', [cookie('', 0)]);
   }
+  if (path === '/profile') {
+   if (user.must_change_password) return redirect(res, '/password');
+   const account = await db.get('SELECT id, role, name, phone, consent_at, marketing, created_at FROM users WHERE id = ?', [user.id]);
+   if (method === 'GET') return send(res, 200, view.profilePage({ ...ctx, account, message }));
+   const name = text(form.name, 80);
+   if (name.length < 2 || /[\x00-\x1f<>]/.test(name)) return send(res, 400, view.profilePage({ ...ctx, account: { ...account, name }, error: 'Укажите имя, не короче 2 символов.' }));
+   const marketing = account.role === 'client' ? (form.marketing === 'on' ? 1 : 0) : account.marketing;
+   await db.run('UPDATE users SET name = ?, marketing = ? WHERE id = ?', [name, marketing, user.id]);
+   return back('/profile', 'ok', 'Профиль сохранён.');
+  }
   if (path === '/password') {
    const forced = Boolean(user.must_change_password);
    if (method === 'GET') return send(res, 200, view.passwordPage({ ...ctx, forced }));
